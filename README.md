@@ -75,7 +75,6 @@ src/
 │  │  ├─ DroneGlyph       Flat SVG aircraft shared by both fallbacks
 │  │  └─ SceneLoader      Pure-CSS placeholder while the 3D chunk streams
 │  ├─ three/lodge/
-│  │  ├─ LodgeCanvas      The shot's own canvas + scrubbed camera rig
 │  │  ├─ Lodge            Procedural wilderness lodge
 │  │  └─ Wilderness       Terrain, instanced forest, lake, dusk sky
 │  ├─ sections/           Hero, Manifesto, Events, RealEstate, Shot, Contact
@@ -87,8 +86,8 @@ src/
 └─ lib/
    ├─ site.ts             All copy and showcase data
    ├─ flight.ts           The keyframed flight path (background drone)
-   ├─ shot.ts             The keyframed lodge shot (foreground sequence)
-   ├─ stageSignal.ts      One-bit signal so two canvases never render at once
+   ├─ shot.ts             The keyframed lodge shot (the scrubbable sequence)
+   ├─ shotState.ts        The scrubber's playhead, shared with the scene
    ├─ gsap.ts             Lazy GSAP loader + ScrollTrigger sync
    └─ utils.ts            cn, lerp, damp, mapRange, smoothstep
 ```
@@ -123,6 +122,23 @@ To re-time the animation, edit `FLIGHT_PATH`. To re-order the story, edit
 
 ---
 
+## There is no photography
+
+Every visual on this site is the same live 3D scene: a wilderness lodge in a
+forested valley at dusk. There is no stock, no borrowed clips, and no video
+players standing empty waiting for footage that does not exist yet.
+
+The scene is fixed behind the document, and sections marked `sky` are
+genuinely transparent — the layout is a stencil over a continuous flight.
+That has one hard consequence worth knowing before editing: **a transparent
+window inside an opaque cream band reveals the cream, not the scene.** Visuals
+have to live in their own `sky` band. Full-bleed, too, per the reference
+system, which bleeds imagery edge to edge in section dividers and avoids
+contained rounded cards at that scale — a frame would read as a container
+when the thing it appears to contain is visible right through the whole band.
+
+`<LiveCaption>` labels those bands. The "not footage" half is not decoration.
+
 ## The shot (and why there is no portfolio)
 
 Dronly is a new business with no footage, so the site does not show a
@@ -131,7 +147,9 @@ what the studio has actually done. Instead the "The shot" section renders
 the flight it sells, in real time, and labels it in those words: *real-time
 3D previsualisation — not footage*.
 
-The section is a 320vh track with a `position: sticky` viewport inside it.
+The section owns no canvas. It is a 320vh track with a `position: sticky`
+viewport inside it, and it simply takes over the camera the rest of the site
+is already flying.
 Scroll position within that track is the shot's timeline. A `<Scrubber>`
 sits over the frame with the shot list marked on it — approach, reveal,
 orbit, wide, windows — and seeking works by **moving the page**, not by
@@ -164,11 +182,11 @@ self-contained.
   lighting comes from drei `Lightformer`s rather than a CDN-hosted HDR — the
   page never waits on a third-party asset to look right.
 - **GSAP is lazy too**, loaded by the first scroll-linked component that needs it.
-- **Two canvases never render at once.** The lodge shot mounts its own WebGL
-  context; while its track is on screen it raises a flag (`lib/stageSignal.ts`)
-  and the background aerial stage parks its render loop. The lodge scene also
-  stops entirely when scrolled away, and its forest is two instanced meshes
-  rather than a few hundred draw calls.
+- **One WebGL context for the whole site.** There is a single scene and a
+  single camera; the scrubbable section takes that camera over rather than
+  mounting a second renderer to show the same valley twice. The forest is two
+  instanced meshes rather than a few hundred draw calls, and `lite` thins it
+  further.
 
 ## Responsiveness and accessibility
 
@@ -176,9 +194,12 @@ self-contained.
 
 | Tier | When | What renders |
 | --- | --- | --- |
-| `full` | ≥1024px, fine pointer, ≥4 cores / ≥4 GB | The R3F scroll scene, and the lodge shot with its scrubber |
-| `lite` | phones, tablets, low-core devices | `LiteStage` — the same narrative in three composited transforms, no WebGL context; the shot becomes a text storyboard |
-| `still` | `prefers-reduced-motion`, or no WebGL | A static composition, and the storyboard |
+| `full` | ≥1024px, fine pointer, ≥4 cores / ≥4 GB | The scene at full density and pixel ratio |
+| `lite` | phones, tablets, low-core devices | The same scene, thinner forest, capped pixel ratio |
+| `still` | `prefers-reduced-motion`, or no WebGL | A static composition, and the shot list as a text storyboard |
+
+`lite` is not "no 3D". The scene is the site's only imagery — there is no
+photography to fall back to — so every device that can run WebGL gets it.
 
 Under reduced motion, Lenis is also switched off for native scrolling, GSAP
 parallax never initialises, and every reveal renders in its final state.

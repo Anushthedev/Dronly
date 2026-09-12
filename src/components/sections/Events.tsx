@@ -1,7 +1,5 @@
 import { Arrow, Button } from '@/components/ui/Button';
 import { Card, Tag } from '@/components/ui/Card';
-import { MediaFrame } from '@/components/ui/MediaFrame';
-import { Parallax } from '@/components/ui/Parallax';
 import {
   Reveal,
   RevealGroup,
@@ -16,17 +14,22 @@ import {
   SectionLabel,
   SkyCurve,
 } from '@/components/ui/Section';
+import { LiveCaption } from '@/components/ui/LiveCaption';
 import { EVENT_CAPABILITIES, EVENT_SERVICES } from '@/lib/site';
 
 /**
- * Events: a cream editorial block, then a full-bleed sky band where the
- * drone banks through its crowd orbit behind a pull quote.
+ * Events.
+ *
+ * Cream editorial blocks alternate with full-bleed sky bands. The sky bands
+ * are genuinely empty — the live scene behind the document shows through
+ * them — which is why the visuals cannot sit inside a cream block: an
+ * opaque background would be all a transparent window revealed.
  */
 export function Events() {
   return (
     <Section id="events" label="Event drone coverage">
       <Band className="pt-15 sm:pt-30">
-        <Container className="pb-15 sm:pb-30">
+        <Container className="pb-12 sm:pb-15">
           <SectionLabel>01 — Events</SectionLabel>
 
           <div className="mt-8 grid gap-10 lg:grid-cols-12 lg:items-end">
@@ -41,19 +44,29 @@ export function Events() {
               </p>
             </Reveal>
           </div>
+        </Container>
+        <SkyCurve />
+      </Band>
 
-          {/* Wide establishing plate */}
-          <Reveal className="mt-12 sm:mt-15" distance={40}>
-            <Parallax distance={90} scale tilt={9} axis="x">
-              <MediaFrame
-                label="Festival crowd from 400 feet"
-                ratio="21/9"
-                seed="events-hero"
-              />
-            </Parallax>
+      {/* Establishing band — full bleed, no frame: the scene is the image. */}
+      <Band
+        tone="sky"
+        className="flex min-h-[78svh] flex-col justify-end pb-8 sm:pb-12"
+      >
+        <Container>
+          <Reveal distance={40}>
+            <figure>
+              <LiveCaption>The valley we fly</LiveCaption>
+            </figure>
           </Reveal>
+        </Container>
+      </Band>
 
-          <RevealGroup className="mt-15 grid gap-5 md:grid-cols-3" as="ul">
+      <CreamCurve />
+
+      <Band className="py-15 sm:py-30">
+        <Container>
+          <RevealGroup className="grid gap-5 md:grid-cols-3" as="ul">
             {EVENT_SERVICES.map((service, index) => (
               <RevealItem as="li" key={service.title}>
                 {/* One violet card per group — the single chromatic surface. */}
@@ -107,11 +120,10 @@ export function Events() {
             <Tag>Typical turnaround · 5 days</Tag>
           </Reveal>
         </Container>
+        <SkyCurve />
       </Band>
 
-      <SkyCurve />
-
-      {/* Sky band — the 3D stage shows through, drone mid-orbit behind it. */}
+      {/* Sky band — the drone banks past the lodge behind the pull quote. */}
       <Band tone="sky" className="flex min-h-[70svh] items-center py-30">
         <Container>
           <Reveal>

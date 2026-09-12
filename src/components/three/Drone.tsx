@@ -24,9 +24,11 @@ const ARM_LENGTH = 0.52;
 export type DroneProps = {
   /** Rotor speed multiplier, driven by the flight path. */
   rotorRef: React.RefObject<number>;
+  /** Lower tiers drop the rotor discs and a little geometry detail. */
+  quality?: 'full' | 'lite';
 };
 
-export function Drone({ rotorRef }: DroneProps) {
+export function Drone({ rotorRef, quality = 'full' }: DroneProps) {
   const rotors = useRef<THREE.Group[]>([]);
   const beacon = useRef<THREE.Mesh>(null);
 
@@ -169,9 +171,11 @@ export function Drone({ rotorRef }: DroneProps) {
                   <boxGeometry args={[0.46, 0.005, 0.07]} />
                 </mesh>
               ))}
-              <mesh material={materials.disc} rotation={[-Math.PI / 2, 0, 0]}>
-                <circleGeometry args={[0.23, 24]} />
-              </mesh>
+              {quality === 'full' && (
+                <mesh material={materials.disc} rotation={[-Math.PI / 2, 0, 0]}>
+                  <circleGeometry args={[0.23, 24]} />
+                </mesh>
+              )}
             </group>
 
             {/* Landing skid */}

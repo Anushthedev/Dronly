@@ -1,6 +1,5 @@
 import { Arrow, Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { MediaFrame } from '@/components/ui/MediaFrame';
 import { Parallax } from '@/components/ui/Parallax';
 import {
   Reveal,
@@ -8,18 +7,27 @@ import {
   RevealItem,
   RevealLines,
 } from '@/components/ui/Reveal';
-import { Band, Container, Section, SectionLabel } from '@/components/ui/Section';
+import {
+  Band,
+  Container,
+  CreamCurve,
+  Section,
+  SectionLabel,
+  SkyCurve,
+} from '@/components/ui/Section';
+import { LiveCaption } from '@/components/ui/LiveCaption';
 import { REAL_ESTATE_SERVICES, REAL_ESTATE_STEPS } from '@/lib/site';
 
 /**
- * Real estate: the survey beat. The drone climbs and pitches nose-down
- * behind this block, so the layout goes to a tighter, more technical grid.
+ * Real estate: the survey beat. The camera climbs and pitches nose-down
+ * over the lodge through this section, so the sky band in the middle is
+ * looking almost straight down at the property.
  */
 export function RealEstate() {
   return (
     <Section id="real-estate" label="Real estate aerial shooting">
-      <Band className="py-15 sm:py-30">
-        <Container>
+      <Band className="pt-15 sm:pt-30">
+        <Container className="pb-12 sm:pb-15">
           <SectionLabel>02 — Real estate</SectionLabel>
 
           <div className="mt-8 grid gap-10 lg:grid-cols-12 lg:items-end">
@@ -34,52 +42,48 @@ export function RealEstate() {
               </p>
             </Reveal>
           </div>
+        </Container>
+        <SkyCurve />
+      </Band>
 
-          <div className="mt-12 grid gap-5 sm:mt-15 md:grid-cols-12">
-            <Parallax
-              className="md:col-span-7"
-              distance={70}
-              scale
-              tilt={8}
-              axis="y"
+      {/* The survey pass — the camera is directly over the property here. */}
+      <Band
+        tone="sky"
+        className="flex min-h-[82svh] flex-col justify-end pb-8 sm:pb-12"
+      >
+        <Container>
+          <Reveal distance={40}>
+            <figure>
+              <LiveCaption>The property, overhead</LiveCaption>
+            </figure>
+          </Reveal>
+        </Container>
+      </Band>
+
+      <CreamCurve />
+
+      <Band className="py-15 sm:py-30">
+        <Container>
+          <Parallax distance={50} tilt={7} axis="y" className="mb-5">
+            <Card
+              tone="violet"
+              className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between"
             >
-              <MediaFrame
-                label="Hillside property, twilight exterior"
-                ratio="4/5"
-                seed="listing-primary"
-                className="h-full"
-              />
-            </Parallax>
-
-            <div className="flex flex-col gap-5 md:col-span-5">
-              <Card
-                tone="violet"
-                className="flex flex-1 flex-col justify-between gap-10"
-              >
+              <div>
                 <h3 className="text-subheading font-semibold">
                   The 48-hour listing package
                 </h3>
-                <div>
-                  <p className="text-body text-meadow-cream/85">
-                    One shoot, three deliverables: a 90-second film, a vertical cut
-                    for social, and twenty-five graded stills. Priced flat, no
-                    per-frame licensing.
-                  </p>
-                  <p className="type-label mt-6">From $690 per property</p>
-                </div>
-              </Card>
-              <Parallax distance={40} tilt={6} axis="x">
-                <MediaFrame
-                  label="Orthomosaic survey pass"
-                  ratio="16/9"
-                  seed="listing-survey"
-                  chrome={false}
-                />
-              </Parallax>
-            </div>
-          </div>
+                <p className="text-body text-meadow-cream/85 mt-4 max-w-[52ch]">
+                  One shoot, three deliverables: a 90-second film, a vertical cut
+                  for social, and twenty-five graded stills. Priced flat, no
+                  per-frame licensing.
+                </p>
+              </div>
+              <p className="type-label shrink-0">From $690 per property</p>
+            </Card>
+          </Parallax>
 
-          <RevealGroup className="mt-15 grid gap-5 md:grid-cols-3" as="ul">
+          <RevealGroup className="grid gap-5 md:grid-cols-3" as="ul">
             {REAL_ESTATE_SERVICES.map((service) => (
               <RevealItem as="li" key={service.title}>
                 <Card className="flex h-full flex-col justify-between gap-10">

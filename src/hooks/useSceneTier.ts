@@ -37,16 +37,19 @@ export function useSceneTier(): SceneTier | null {
     const fine = window.matchMedia('(hover: hover) and (pointer: fine)');
 
     const resolve = () => {
+      // The scene IS the site's imagery — there is no photography to fall
+      // back to — so anything that can run WebGL gets it. Only a stated
+      // motion preference or a missing context drops to the static page.
       if (reduced.matches || !hasWebGL()) return setTier('still');
 
       const nav = navigator as NavigatorWithMemory;
       const cores = nav.hardwareConcurrency ?? 4;
       const memory = nav.deviceMemory ?? 4;
-      const capable = cores >= 4 && memory >= 4;
 
-      // A wide viewport alone is not enough — a touch-only tablet at 1280px
-      // still pays a heavy price for a persistent WebGL context.
-      setTier(wide.matches && fine.matches && capable ? 'full' : 'lite');
+      // `lite` is not "no 3D" — it is the same scene with a thinner forest
+      // and a lower pixel ratio, for phones and low-core machines.
+      const capable = wide.matches && fine.matches && cores >= 4 && memory >= 4;
+      setTier(capable ? 'full' : 'lite');
     };
 
     resolve();

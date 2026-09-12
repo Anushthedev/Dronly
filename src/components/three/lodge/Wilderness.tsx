@@ -51,7 +51,7 @@ export function Terrain() {
 
   return (
     <mesh geometry={geometry} receiveShadow>
-      <meshStandardMaterial color="#3a4a3f" roughness={1} metalness={0} />
+      <meshStandardMaterial color="#4a5c50" roughness={1} metalness={0} />
     </mesh>
   );
 }
@@ -117,7 +117,7 @@ export function Forest({ count = 260 }: { count?: number }) {
     <group>
       <instancedMesh ref={cones} args={[undefined, undefined, count]}>
         <coneGeometry args={[1.45, 6.2, 7]} />
-        <meshStandardMaterial color="#24362b" roughness={0.95} metalness={0} />
+        <meshStandardMaterial color="#2b4034" roughness={0.95} metalness={0} />
       </instancedMesh>
       <instancedMesh ref={trunks} args={[undefined, undefined, count]}>
         <cylinderGeometry args={[0.16, 0.24, 1.6, 6]} />
