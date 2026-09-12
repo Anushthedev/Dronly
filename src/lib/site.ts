@@ -11,7 +11,10 @@ export const SITE = {
   email: 'fly@dronly.studio',
   phone: '+1 (415) 555-0192',
   location: 'San Francisco · Los Angeles · Remote worldwide',
-  license: 'FAA Part 107 certified · $2M liability insured',
+  // PLACEHOLDER — verify before launch. Part 107 is a real certification
+  // you must hold to fly commercially; the insurance figure is a stand-in.
+  // Do not publish either line until both are true.
+  license: 'FAA Part 107 certified · Insured to $1M',
 } as const;
 
 export type NavLink = { label: string; href: string };
@@ -19,7 +22,7 @@ export type NavLink = { label: string; href: string };
 export const NAV_LINKS: NavLink[] = [
   { label: 'Events', href: '#events' },
   { label: 'Real estate', href: '#real-estate' },
-  { label: 'Work', href: '#work' },
+  { label: 'The shot', href: '#shot' },
   { label: 'Booking', href: '#contact' },
 ];
 
@@ -29,17 +32,17 @@ export const SECTION_IDS = [
   'manifesto',
   'events',
   'real-estate',
-  'work',
+  'shot',
   'contact',
 ] as const;
 
 export type SectionId = (typeof SECTION_IDS)[number];
 
 export const STATS = [
-  { value: '480+', label: 'Flights logged' },
-  { value: '12k', label: 'Feet of ceiling' },
   { value: '6K', label: 'Capture resolution' },
-  { value: '48h', label: 'Standard delivery' },
+  { value: '107', label: 'FAA certification' },
+  { value: '48h', label: 'Delivery target' },
+  { value: '2', label: 'Crew per shoot' },
 ] as const;
 
 export const EVENT_SERVICES = [
@@ -103,69 +106,27 @@ export const REAL_ESTATE_STEPS = [
   },
 ] as const;
 
-export type ShowcaseItem = {
-  id: string;
-  title: string;
-  category: string;
-  location: string;
-  year: string;
-  /** Aspect ratio for the placeholder frame. */
-  ratio: '4/5' | '16/9' | '1/1' | '3/4';
-  /** Drop a real still or video in here later. */
-  media?: string;
-  featured?: boolean;
+/**
+ * Beats of the demonstration flight rendered in the "The shot" section.
+ *
+ * This studio has no footage yet, so the site shows a previsualisation —
+ * a real-time 3D render of the flight path we fly over a property — rather
+ * than borrowed clips or invented client work. The section labels it as a
+ * render, in those words. Replace it with a real edit once one exists.
+ */
+export type ShotBeat = {
+  /** Normalised position along the shot, 0 → 1. */
+  at: number;
+  label: string;
+  note: string;
 };
 
-export const SHOWCASE: ShowcaseItem[] = [
-  {
-    id: 'ridgeline',
-    title: 'Ridgeline House',
-    category: 'Real estate',
-    location: 'Mill Valley, CA',
-    year: '2026',
-    ratio: '4/5',
-    featured: true,
-  },
-  {
-    id: 'harbor-lights',
-    title: 'Harbor Lights Festival',
-    category: 'Event',
-    location: 'Long Beach, CA',
-    year: '2026',
-    ratio: '16/9',
-  },
-  {
-    id: 'the-vow',
-    title: 'The Vow — Coastal Ceremony',
-    category: 'Wedding',
-    location: 'Big Sur, CA',
-    year: '2025',
-    ratio: '3/4',
-  },
-  {
-    id: 'quarry-district',
-    title: 'Quarry District',
-    category: 'Development',
-    location: 'Oakland, CA',
-    year: '2025',
-    ratio: '1/1',
-  },
-  {
-    id: 'night-circuit',
-    title: 'Night Circuit',
-    category: 'Motorsport',
-    location: 'Sonoma, CA',
-    year: '2025',
-    ratio: '16/9',
-  },
-  {
-    id: 'glasshouse',
-    title: 'Glasshouse No. 4',
-    category: 'Architecture',
-    location: 'Palo Alto, CA',
-    year: '2024',
-    ratio: '4/5',
-  },
+export const SHOT_BEATS: ShotBeat[] = [
+  { at: 0, label: 'Approach', note: 'Low and slow through the treeline' },
+  { at: 0.24, label: 'Reveal', note: 'Climb until the roofline breaks cover' },
+  { at: 0.46, label: 'Orbit', note: 'A full pass to place it on its lot' },
+  { at: 0.7, label: 'Wide', note: 'High and back for the establishing frame' },
+  { at: 1, label: 'Windows', note: 'Push in on the light in the glass' },
 ];
 
 export const SERVICE_OPTIONS = [

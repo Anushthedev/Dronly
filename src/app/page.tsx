@@ -3,7 +3,7 @@ import { Events } from '@/components/sections/Events';
 import { Hero } from '@/components/sections/Hero';
 import { Manifesto } from '@/components/sections/Manifesto';
 import { RealEstate } from '@/components/sections/RealEstate';
-import { Work } from '@/components/sections/Work';
+import { Shot } from '@/components/sections/Shot';
 import { SkyCurve } from '@/components/ui/Section';
 
 /**
@@ -19,7 +19,7 @@ export default function Home() {
       <Events />
       <RealEstate />
       <SkyCurve />
-      <Work />
+      <Shot />
       <Contact />
     </>
   );

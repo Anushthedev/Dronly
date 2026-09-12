@@ -10,7 +10,7 @@ const LABELS: Record<string, string> = {
   manifesto: 'Studio',
   events: 'Events',
   'real-estate': 'Real estate',
-  work: 'Work',
+  shot: 'The shot',
   contact: 'Booking',
 };
 

@@ -74,7 +74,11 @@ src/
 │  │  ├─ LiteStage        Framer Motion fallback (mobile) + static fallback
 │  │  ├─ DroneGlyph       Flat SVG aircraft shared by both fallbacks
 │  │  └─ SceneLoader      Pure-CSS placeholder while the 3D chunk streams
-│  ├─ sections/           Hero, Manifesto, Events, RealEstate, Work, Contact
+│  ├─ three/lodge/
+│  │  ├─ LodgeCanvas      The shot's own canvas + scrubbed camera rig
+│  │  ├─ Lodge            Procedural wilderness lodge
+│  │  └─ Wilderness       Terrain, instanced forest, lake, dusk sky
+│  ├─ sections/           Hero, Manifesto, Events, RealEstate, Shot, Contact
 │  └─ ui/                 Button, Card, Section/Band, Reveal, MediaFrame,
 │                         Nav, Footer, Marquee, Parallax, ScrollProgress,
 │                         InlineThumb
@@ -82,7 +86,9 @@ src/
 ├─ hooks/                 useReducedMotion, useSceneTier
 └─ lib/
    ├─ site.ts             All copy and showcase data
-   ├─ flight.ts           The keyframed flight path
+   ├─ flight.ts           The keyframed flight path (background drone)
+   ├─ shot.ts             The keyframed lodge shot (foreground sequence)
+   ├─ stageSignal.ts      One-bit signal so two canvases never render at once
    ├─ gsap.ts             Lazy GSAP loader + ScrollTrigger sync
    └─ utils.ts            cn, lerp, damp, mapRange, smoothstep
 ```
@@ -117,6 +123,33 @@ To re-time the animation, edit `FLIGHT_PATH`. To re-order the story, edit
 
 ---
 
+## The shot (and why there is no portfolio)
+
+Dronly is a new business with no footage, so the site does not show a
+portfolio — inventing client work, or borrowing clips, would misrepresent
+what the studio has actually done. Instead the "The shot" section renders
+the flight it sells, in real time, and labels it in those words: *real-time
+3D previsualisation — not footage*.
+
+The section is a 320vh track with a `position: sticky` viewport inside it.
+Scroll position within that track is the shot's timeline. A `<Scrubber>`
+sits over the frame with the shot list marked on it — approach, reveal,
+orbit, wide, windows — and seeking works by **moving the page**, not by
+holding a second copy of the playhead: the handle writes a scroll offset,
+and scroll drives the shot exactly as it always does. So there is one
+source of truth, dragging and scrolling can't disagree, and the scrubber
+stays correct with no syncing logic.
+
+Sticky is deliberate over ScrollTrigger's `pin`: pinning injects a spacer
+and rewrites document height, which the scroll provider measures section
+offsets from.
+
+Beat positions in `lib/shot.ts` and `SHOT_BEATS` in `lib/site.ts` are the
+same numbers, so a labelled tick always lands on the frame it names.
+
+Replace the whole thing with a real edit once one exists — the section is
+self-contained.
+
 ## Performance
 
 - **The 3D layer is never in the first-load bundle.** `SceneCanvas` is a
@@ -131,6 +164,11 @@ To re-time the animation, edit `FLIGHT_PATH`. To re-order the story, edit
   lighting comes from drei `Lightformer`s rather than a CDN-hosted HDR — the
   page never waits on a third-party asset to look right.
 - **GSAP is lazy too**, loaded by the first scroll-linked component that needs it.
+- **Two canvases never render at once.** The lodge shot mounts its own WebGL
+  context; while its track is on screen it raises a flag (`lib/stageSignal.ts`)
+  and the background aerial stage parks its render loop. The lodge scene also
+  stops entirely when scrolled away, and its forest is two instanced meshes
+  rather than a few hundred draw calls.
 
 ## Responsiveness and accessibility
 
@@ -138,9 +176,9 @@ To re-time the animation, edit `FLIGHT_PATH`. To re-order the story, edit
 
 | Tier | When | What renders |
 | --- | --- | --- |
-| `full` | ≥1024px, fine pointer, ≥4 cores / ≥4 GB | The R3F scroll scene |
-| `lite` | phones, tablets, low-core devices | `LiteStage` — the same narrative in three composited transforms, no WebGL context |
-| `still` | `prefers-reduced-motion`, or no WebGL | A static composition |
+| `full` | ≥1024px, fine pointer, ≥4 cores / ≥4 GB | The R3F scroll scene, and the lodge shot with its scrubber |
+| `lite` | phones, tablets, low-core devices | `LiteStage` — the same narrative in three composited transforms, no WebGL context; the shot becomes a text storyboard |
+| `still` | `prefers-reduced-motion`, or no WebGL | A static composition, and the storyboard |
 
 Under reduced motion, Lenis is also switched off for native scrolling, GSAP
 parallax never initialises, and every reveal renders in its final state.
@@ -181,8 +219,14 @@ stay identical:
 ```
 
 `.mp4`/`.webm`/`.mov` render as a muted autoplaying loop; anything else renders
-as an image. For the gallery, add `media:` to the entries in `SHOWCASE`
-(`src/lib/site.ts`).
+as an image.
+
+**Claims to verify before launch.** `SITE.license` in `src/lib/site.ts` is
+marked as a placeholder: Part 107 is a real certification you must hold to fly
+commercially, and the insurance figure is a stand-in. Neither line should ship
+until both are true. `STATS` deliberately describes capability (resolution,
+crew size, delivery target) rather than history, because there is no history
+yet — if you replace those with counts, make them real ones.
 
 **Real fonts.** fkGroteskNeue and fkScreamer are licensed. The site loads the
 substitutes the reference system nominates — Inter and Antonio — through

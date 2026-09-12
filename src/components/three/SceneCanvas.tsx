@@ -4,6 +4,7 @@ import { Canvas } from '@react-three/fiber';
 import { Suspense, useEffect, useState } from 'react';
 
 import { DroneScene } from '@/components/three/DroneScene';
+import { subscribeForeground } from '@/lib/stageSignal';
 
 /**
  * The WebGL layer. Fixed behind the whole document — every section scrolls
@@ -14,6 +15,7 @@ import { DroneScene } from '@/components/three/DroneScene';
  */
 export default function SceneCanvas({ onReady }: { onReady?: () => void }) {
   const [paused, setPaused] = useState(false);
+  const [occluded, setOccluded] = useState(false);
 
   // A hidden tab should not be burning a GPU on an animation nobody is
   // watching — and coming back to a stale frame is fine, the rig damps in.
@@ -23,12 +25,16 @@ export default function SceneCanvas({ onReady }: { onReady?: () => void }) {
     return () => document.removeEventListener('visibilitychange', onVisibility);
   }, []);
 
+  // The lodge shot draws its own context over the top of this one; two
+  // renderers running at once costs frames nobody sees.
+  useEffect(() => subscribeForeground(setOccluded), []);
+
   return (
     <Canvas
       // Decorative: all information in the scene is also present in the DOM.
       aria-hidden="true"
       className="!fixed inset-0 -z-10"
-      frameloop={paused ? 'never' : 'always'}
+      frameloop={paused || occluded ? 'never' : 'always'}
       // Capping DPR at 1.75 is the single biggest win on retina displays;
       // above that the difference is invisible and the fill rate triples.
       dpr={[1, 1.75]}

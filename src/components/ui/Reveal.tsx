@@ -8,6 +8,48 @@ import { cn } from '@/lib/utils';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
+/**
+ * Depth is applied with `transformPerspective` rather than a `perspective`
+ * wrapper. A wrapper would mean an extra div around every reveal — which
+ * breaks the grid placement these components are used inside of (they are
+ * frequently the direct grid child carrying `col-span-*`). Per-element
+ * perspective costs one vanishing point per element instead of one shared
+ * across a row, which at these tilt angles is not perceptible.
+ */
+const PERSPECTIVE = 1100;
+
+type Direction = 'up' | 'down' | 'left' | 'right';
+
+/**
+ * Each direction hinges around the edge it enters from, the way a panel
+ * swings into place rather than sliding on a flat plane.
+ */
+function entrance(direction: Direction, distance: number, depth: number) {
+  switch (direction) {
+    case 'down':
+      return {
+        from: { y: -distance, rotateX: -depth, transformOrigin: '50% 0%' },
+        to: { y: 0, rotateX: 0 },
+      };
+    case 'left':
+      return {
+        from: { x: distance, rotateY: -depth, transformOrigin: '100% 50%' },
+        to: { x: 0, rotateY: 0 },
+      };
+    case 'right':
+      return {
+        from: { x: -distance, rotateY: depth, transformOrigin: '0% 50%' },
+        to: { x: 0, rotateY: 0 },
+      };
+    case 'up':
+    default:
+      return {
+        from: { y: distance, rotateX: depth, transformOrigin: '50% 100%' },
+        to: { y: 0, rotateX: 0 },
+      };
+  }
+}
+
 type RevealProps = {
   children: ReactNode;
   className?: string;
@@ -16,11 +58,15 @@ type RevealProps = {
   delay?: number;
   /** Travel distance in px. */
   distance?: number;
-  direction?: 'up' | 'down' | 'left' | 'right';
+  direction?: Direction;
+  /** Hinge angle in degrees. 0 falls back to a flat slide. */
+  depth?: number;
 };
 
 /**
- * The workhorse entrance: a short, heavily eased rise with a fade.
+ * The workhorse entrance: the element hinges up out of the page plane and
+ * settles flat, pushed back in Z so it arrives from behind the surface.
+ *
  * Framer Motion's `whileInView` fires once, so nothing re-animates on the
  * way back up — scrubbing reveals in both directions reads as jitter.
  */
@@ -31,29 +77,25 @@ export function Reveal({
   delay = 0,
   distance = 28,
   direction = 'up',
+  depth = 12,
 }: RevealProps) {
   const reduced = useReducedMotion();
   const Component = motion.create(as as ElementType<Record<string, unknown>>);
-
-  const offset = {
-    up: { y: distance },
-    down: { y: -distance },
-    left: { x: distance },
-    right: { x: -distance },
-  }[direction];
 
   if (reduced) {
     const Static = as as ElementType<Record<string, unknown>>;
     return <Static className={className}>{children}</Static>;
   }
 
+  const { from, to } = entrance(direction, distance, depth);
+
   return (
     <Component
       className={className}
-      initial={{ opacity: 0, ...offset }}
-      whileInView={{ opacity: 1, x: 0, y: 0 }}
+      initial={{ opacity: 0, z: -90, transformPerspective: PERSPECTIVE, ...from }}
+      whileInView={{ opacity: 1, z: 0, ...to }}
       viewport={{ once: true, margin: '0px 0px -12% 0px' }}
-      transition={{ duration: 0.9, delay, ease: EASE }}
+      transition={{ duration: 1, delay, ease: EASE }}
     >
       {children}
     </Component>
@@ -66,8 +108,21 @@ const GROUP: Variants = {
 };
 
 const ITEM: Variants = {
-  hidden: { opacity: 0, y: 26 },
-  shown: { opacity: 1, y: 0, transition: { duration: 0.85, ease: EASE } },
+  hidden: {
+    opacity: 0,
+    y: 34,
+    z: -110,
+    rotateX: 14,
+    transformPerspective: PERSPECTIVE,
+    transformOrigin: '50% 100%',
+  },
+  shown: {
+    opacity: 1,
+    y: 0,
+    z: 0,
+    rotateX: 0,
+    transition: { duration: 0.95, ease: EASE },
+  },
 };
 
 /** Wrap a list to stagger its `<RevealItem>` children. */
@@ -126,9 +181,14 @@ export function RevealItem({
 }
 
 /**
- * Display headlines reveal a line at a time from behind a mask, which is what
- * gives oversized type its "stamped" entrance. Each line must be a separate
- * string so the mask can clip it independently.
+ * Display headlines reveal a line at a time, each one hinging up from its
+ * own baseline inside a mask — the type rotates into the page plane rather
+ * than sliding flat, which is what reads as "stamped" at this scale.
+ *
+ * Each line must be a separate string so the mask can clip it independently.
+ * Perspective sits on the clipping span and the rotation on its direct
+ * child: `overflow: hidden` flattens a `preserve-3d` chain, so the transform
+ * has to be one level deep, not nested further.
  */
 export function RevealLines({
   lines,
@@ -180,12 +240,21 @@ export function RevealLines({
         {lines.map((line) => (
           // The clipping wrapper needs its own line box; `overflow-hidden` on
           // the animated element itself would clip nothing.
-          <span key={line} className="block overflow-hidden pb-[0.06em]">
+          <span
+            key={line}
+            className="block overflow-hidden pb-[0.06em]"
+            style={{ perspective: '900px' }}
+          >
             <motion.span
-              className={cn('block', lineClassName)}
+              className={cn('block origin-bottom', lineClassName)}
               variants={{
-                hidden: { y: '105%' },
-                shown: { y: '0%', transition: { duration: 1, ease: EASE } },
+                hidden: { y: '92%', rotateX: -62, opacity: 0 },
+                shown: {
+                  y: '0%',
+                  rotateX: 0,
+                  opacity: 1,
+                  transition: { duration: 1.1, ease: EASE },
+                },
               }}
             >
               {line}

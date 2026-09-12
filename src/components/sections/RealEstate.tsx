@@ -36,7 +36,13 @@ export function RealEstate() {
           </div>
 
           <div className="mt-12 grid gap-5 sm:mt-15 md:grid-cols-12">
-            <Parallax className="md:col-span-7" distance={70} scale>
+            <Parallax
+              className="md:col-span-7"
+              distance={70}
+              scale
+              tilt={8}
+              axis="y"
+            >
               <MediaFrame
                 label="Hillside property, twilight exterior"
                 ratio="4/5"
@@ -62,7 +68,7 @@ export function RealEstate() {
                   <p className="type-label mt-6">From $690 per property</p>
                 </div>
               </Card>
-              <Parallax distance={40}>
+              <Parallax distance={40} tilt={6} axis="x">
                 <MediaFrame
                   label="Orthomosaic survey pass"
                   ratio="16/9"

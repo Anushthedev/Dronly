@@ -44,7 +44,7 @@ export function Events() {
 
           {/* Wide establishing plate */}
           <Reveal className="mt-12 sm:mt-15" distance={40}>
-            <Parallax distance={90} scale className="rounded-card overflow-hidden">
+            <Parallax distance={90} scale tilt={9} axis="x">
               <MediaFrame
                 label="Festival crowd from 400 feet"
                 ratio="21/9"
@@ -122,7 +122,7 @@ export function Events() {
                 />
               </p>
               <footer className="type-label text-meadow-cream/60 mt-8">
-                — Dronly flight log, Harbor Lights, 2026
+                Why we fly events
               </footer>
             </blockquote>
           </Reveal>
