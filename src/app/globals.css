@@ -1,0 +1,181 @@
+@import 'tailwindcss';
+
+/* ------------------------------------------------------------------ *
+ *  Dronly design tokens
+ *  Derived from the Zipline reference system: a warm cream canvas,
+ *  maximum-contrast ink, one violet accent surface, 20px radii.
+ * ------------------------------------------------------------------ */
+@theme {
+  /* Colors ---------------------------------------------------------- */
+  --color-meadow-cream: #f7f4e8;
+  --color-hillside-ink: #000000;
+  --color-stone-border: #c6c3ba;
+  --color-drone-violet: #643aed;
+
+  /* Typography ------------------------------------------------------ *
+   * fkGroteskNeue / fkScreamer are licensed faces. We load the
+   * substitutes the reference system nominates: Inter for the grotesk,
+   * Antonio Bold for the screamer. Both are wired up in app/layout.tsx
+   * through next/font, which fills in the CSS variables below.        */
+  --font-grotesk:
+    var(--font-fkgroteskneue), ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-screamer:
+    var(--font-fkscreamer), 'Antonio', 'Arial Narrow', ui-sans-serif, system-ui,
+    sans-serif;
+
+  /* Type scale — sizes carry their own line-height / tracking.        */
+  --text-caption: 14px;
+  --text-caption--line-height: 1.2;
+  --text-caption--letter-spacing: -0.14px;
+  --text-body: 16px;
+  --text-body--line-height: 1.4;
+  --text-body--letter-spacing: -0.16px;
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 1.4;
+  --text-body-lg--letter-spacing: -0.18px;
+  --text-subheading: 22px;
+  --text-subheading--line-height: 1;
+  --text-subheading--letter-spacing: -0.22px;
+  --text-heading-sm: 40px;
+  --text-heading-sm--line-height: 0.85;
+  --text-heading: 90px;
+  --text-heading--line-height: 0.85;
+  --text-heading-lg: 120px;
+  --text-heading-lg--line-height: 0.85;
+  --text-display: 150px;
+  --text-display--line-height: 0.85;
+
+  /* Radius — one value unifies buttons, cards, images, tags.          */
+  --radius-card: 20px;
+  --radius-2xl: 20px;
+
+  /* Motion ---------------------------------------------------------- */
+  --ease-cinematic: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-drift: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* ------------------------------------------------------------------ *
+ *  Base
+ * ------------------------------------------------------------------ */
+@layer base {
+  html {
+    /* Ink, not cream: the page opens and closes on a dark full-bleed band,
+       so overscroll on both ends should read as sky rather than paper. */
+    background-color: #08080a;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Lenis drives smooth scrolling; native smooth scroll would fight it.
+     When Lenis is off (reduced motion / no JS) the browser default wins. */
+  html:not(.lenis) {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    /* Transparent by design — the fixed 3D stage sits behind the document
+       and shows through every section marked `sky`. The opaque backdrop in
+       app/layout.tsx guarantees a dark ground even before any JS runs. */
+    background-color: transparent;
+    color: var(--color-hillside-ink);
+    font-family: var(--font-grotesk);
+    font-size: var(--text-body);
+    line-height: 1.4;
+    letter-spacing: -0.16px;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background-color: var(--color-drone-violet);
+    color: var(--color-meadow-cream);
+  }
+
+  :focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  /* The canvas is decorative; never let it trap the keyboard. */
+  canvas {
+    touch-action: pan-y;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ *  Display type
+ *  The token scale is fixed-px by design. These utilities keep the
+ *  0.85 line-height and normal tracking intact while letting the size
+ *  breathe down to phone widths.
+ * ------------------------------------------------------------------ */
+@utility type-display {
+  font-family: var(--font-screamer);
+  font-weight: 700;
+  font-size: clamp(56px, 11.5vw, 150px);
+  line-height: 0.85;
+  letter-spacing: normal;
+  text-transform: uppercase;
+}
+
+@utility type-heading-lg {
+  font-family: var(--font-screamer);
+  font-weight: 700;
+  font-size: clamp(48px, 9vw, 120px);
+  line-height: 0.85;
+  letter-spacing: normal;
+  text-transform: uppercase;
+}
+
+@utility type-heading {
+  font-family: var(--font-screamer);
+  font-weight: 700;
+  font-size: clamp(42px, 7vw, 90px);
+  line-height: 0.85;
+  letter-spacing: normal;
+  text-transform: uppercase;
+}
+
+@utility type-heading-sm {
+  font-family: var(--font-screamer);
+  font-weight: 700;
+  font-size: clamp(32px, 4.4vw, 40px);
+  line-height: 0.85;
+  letter-spacing: normal;
+  text-transform: uppercase;
+}
+
+/* Small caps label — fkGroteskNeue territory, never the screamer. */
+@utility type-label {
+  font-family: var(--font-grotesk);
+  font-size: var(--text-caption);
+  line-height: 1.2;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* Full-bleed helper: escapes any padded parent, edge to edge. */
+@utility bleed {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+}
+
+/* ------------------------------------------------------------------ *
+ *  Reduced motion — hard stop on all decorative animation.
+ * ------------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  html:not(.lenis) {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
