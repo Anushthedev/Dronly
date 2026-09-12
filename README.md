@@ -77,7 +77,7 @@ src/
 │  ├─ three/lodge/
 │  │  ├─ Lodge            Procedural wilderness lodge
 │  │  └─ Wilderness       Terrain, instanced forest, lake, dusk sky
-│  ├─ sections/           Hero, Manifesto, Events, RealEstate, Shot, Contact
+│  ├─ sections/           Hero, Manifesto, Events, RealEstate, Contact
 │  └─ ui/                 Button, Card, Section/Band, Reveal, MediaFrame,
 │                         Nav, Footer, Marquee, Parallax, ScrollProgress,
 │                         InlineThumb
@@ -128,7 +128,8 @@ Every visual on this site is the same live 3D scene: a wilderness lodge in a
 forested valley at dusk. There is no stock, no borrowed clips, and no video
 players standing empty waiting for footage that does not exist yet.
 
-The scene is fixed behind the document, and sections marked `sky` are
+The scene is a sunlit forested valley at midday. It is fixed behind the
+document, and sections marked `sky` are
 genuinely transparent — the layout is a stencil over a continuous flight.
 That has one hard consequence worth knowing before editing: **a transparent
 window inside an opaque cream band reveals the cream, not the scene.** Visuals
@@ -139,7 +140,7 @@ when the thing it appears to contain is visible right through the whole band.
 
 `<LiveCaption>` labels those bands. The "not footage" half is not decoration.
 
-## The shot (and why there is no portfolio)
+## The hero is the shot (and why there is no portfolio)
 
 Dronly is a new business with no footage, so the site does not show a
 portfolio — inventing client work, or borrowing clips, would misrepresent
@@ -147,9 +148,15 @@ what the studio has actually done. Instead the "The shot" section renders
 the flight it sells, in real time, and labels it in those words: *real-time
 3D previsualisation — not footage*.
 
-The section owns no canvas. It is a 320vh track with a `position: sticky`
-viewport inside it, and it simply takes over the camera the rest of the site
-is already flying.
+The hero owns no canvas of its own. It is a 340vh track with a
+`position: sticky` viewport inside it, and it simply takes over the camera
+the rest of the site is already flying. Rather than a headline over a still
+frame, the first thing on the page is the flight with the controls in the
+viewer's hands: scrolling the hero scrubs a pass over the property.
+
+Through the hero the drone model is faded out — the viewer *is* the
+aircraft — and it flies back into frame once the narrative resumes at
+stage 1.
 Scroll position within that track is the shot's timeline. A `<Scrubber>`
 sits over the frame with the shot list marked on it — approach, reveal,
 orbit, wide, windows — and seeking works by **moving the page**, not by

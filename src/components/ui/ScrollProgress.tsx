@@ -37,7 +37,7 @@ export function ScrollProgress() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none fixed top-1/2 right-5 z-40 hidden -translate-y-1/2 flex-col items-center gap-4 mix-blend-difference lg:flex"
+      className="bg-hillside-ink/45 pointer-events-none fixed top-1/2 right-4 z-40 hidden -translate-y-1/2 flex-col items-center gap-4 rounded-full px-2 py-4 backdrop-blur-sm lg:flex"
     >
       <span className="type-label text-meadow-cream [writing-mode:vertical-rl]">
         <span ref={label}>Intro</span>

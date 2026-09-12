@@ -104,7 +104,7 @@ export function DroneScene({ quality }: { quality: 'full' | 'lite' }) {
   useEffect(() => {
     // Aerial haze. Without it the treeline ends at a hard edge and the wide
     // frames look like a model on a table rather than a valley.
-    scene.fog = new THREE.Fog('#2a3050', 90, 340);
+    scene.fog = new THREE.Fog('#b9d2e6', 120, 420);
     return () => {
       scene.fog = null;
     };

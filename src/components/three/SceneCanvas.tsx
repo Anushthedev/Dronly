@@ -46,7 +46,7 @@ export default function SceneCanvas({
         preserveDrawingBuffer: false,
       }}
       onCreated={({ gl }) => {
-        gl.setClearColor('#0b1020', 1);
+        gl.setClearColor('#7fb1e0', 1);
         onReady?.();
       }}
     >

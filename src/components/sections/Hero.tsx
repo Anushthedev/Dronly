@@ -1,72 +1,135 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 import { useScrollApi } from '@/components/providers/ScrollProvider';
 import { Arrow, Button } from '@/components/ui/Button';
+import { Scrubber } from '@/components/ui/Scrubber';
 import { Band, Container, Section } from '@/components/ui/Section';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
-import { loadGsap } from '@/lib/gsap';
-import { SITE, STATS } from '@/lib/site';
+import { useSceneTier } from '@/hooks/useSceneTier';
+import { shotState } from '@/lib/shotState';
+import { SHOT_BEATS, SITE, STATS } from '@/lib/site';
+import { clamp } from '@/lib/utils';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 const HEADLINE = ['Eyes', 'above', 'everything'];
 
+/** Scroll given to the hero shot. Long enough to read each beat. */
+const TRACK_VH = 340;
+
 /**
- * Full-viewport sky band. The 3D stage shows straight through it, so the
- * only thing this section paints is type.
+ * The hero is the shot.
+ *
+ * Rather than a headline over a static frame, the first thing on the page
+ * is the flight itself with the controls in the viewer's hands: scrolling
+ * the hero scrubs a pass over the property, and the transport sits under
+ * the headline. A studio with no reel can still put you in the aircraft.
+ *
+ * The section is a tall track with a sticky viewport, so scroll position
+ * inside the track is the shot's timeline — and the scrubber seeks by
+ * moving the page rather than holding a second copy of the playhead, so
+ * dragging and scrolling can never disagree.
  */
 export function Hero() {
-  const { scrollTo } = useScrollApi();
-  const root = useRef<HTMLDivElement>(null);
+  const { scrollTo, subscribe, state } = useScrollApi();
+  const tier = useSceneTier();
   const reduced = useReducedMotion();
 
-  // The headline drifts up and fades as the hero leaves — scrubbed, so the
-  // position is always a pure function of scroll.
+  const trackRef = useRef<HTMLDivElement>(null);
+  const progress = useRef(0);
+
+  const interactive = tier !== null && tier !== 'still' && !reduced;
+
+  // Scroll → playhead, written to a shared object the render loop reads.
+  // This never re-renders the page.
   useEffect(() => {
-    if (reduced) return;
-    const node = root.current;
-    if (!node) return;
+    if (!interactive) return;
 
-    let ctx: { revert: () => void } | undefined;
-    let cancelled = false;
+    const measure = () => {
+      const node = trackRef.current;
+      if (!node) return null;
+      const top = node.getBoundingClientRect().top + window.scrollY;
+      return { top, range: Math.max(1, node.offsetHeight - window.innerHeight) };
+    };
 
-    loadGsap().then(({ gsap }) => {
-      if (cancelled) return;
-      ctx = gsap.context(() => {
-        gsap.to('[data-hero-copy]', {
-          y: -90,
-          opacity: 0,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: node,
-            start: 'top top',
-            end: 'bottom 30%',
-            scrub: true,
-          },
-        });
-      }, node);
-    });
+    let bounds = measure();
+    const remeasure = () => {
+      bounds = measure();
+    };
+
+    const apply = (y: number) => {
+      if (!bounds) {
+        bounds = measure();
+        if (!bounds) return;
+      }
+      const t = clamp((y - bounds.top) / bounds.range);
+      progress.current = t;
+      shotState.progress = t;
+      // The camera is the shot's only while the track is on screen; past it
+      // the narrative path takes over for the rest of the page.
+      shotState.active = y < bounds.top + bounds.range + window.innerHeight * 0.4;
+    };
+
+    const unsubscribe = subscribe(({ y }) => apply(y));
+    apply(state.current.y);
+
+    const observer = new ResizeObserver(remeasure);
+    observer.observe(document.body);
+    window.addEventListener('resize', remeasure);
 
     return () => {
-      cancelled = true;
-      ctx?.revert();
+      unsubscribe();
+      observer.disconnect();
+      window.removeEventListener('resize', remeasure);
+      shotState.active = false;
+      shotState.immediate = false;
     };
-  }, [reduced]);
+  }, [interactive, state, subscribe]);
+
+  /** Seeking moves the page; scroll then drives the shot as it always does. */
+  const onSeek = useCallback(
+    (t: number, immediate: boolean) => {
+      const node = trackRef.current;
+      if (!node) return;
+      const top = node.getBoundingClientRect().top + window.scrollY;
+      const range = Math.max(1, node.offsetHeight - window.innerHeight);
+      scrollTo(top + t * range, { immediate });
+    },
+    [scrollTo],
+  );
 
   return (
     <Section id="hero" label="Introduction">
-      <Band
-        tone="sky"
-        ref={root}
-        className="flex min-h-[100svh] flex-col justify-between pt-24 pb-8 sm:pt-28 sm:pb-12"
+      <div
+        ref={trackRef}
+        style={interactive ? { height: `${TRACK_VH}vh` } : undefined}
+        className="relative"
       >
-        <Container className="flex flex-1 flex-col justify-end">
-          <div data-hero-copy className="max-w-[min(100%,1100px)]">
+        <Band
+          tone="sky"
+          className={
+            interactive
+              ? 'sticky top-0 flex h-[100svh] flex-col justify-between pt-24 pb-6 sm:pt-28 sm:pb-10'
+              : 'flex min-h-[100svh] flex-col justify-between pt-24 pb-6 sm:pt-28 sm:pb-10'
+          }
+        >
+          {/* The scene is bright daylight, so everything that has to stay
+              readable sits on its own scrim rather than on raw sky. */}
+          <span
+            aria-hidden="true"
+            className="from-hillside-ink/70 pointer-events-none absolute inset-x-0 top-0 -z-10 h-[46svh] bg-gradient-to-b via-[#16233a]/30 to-transparent"
+          />
+          <span
+            aria-hidden="true"
+            className="from-hillside-ink/80 pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-[52svh] bg-gradient-to-t via-[#16233a]/40 to-transparent"
+          />
+
+          <Container>
             <motion.p
-              className="type-label text-meadow-cream/70 mb-6"
+              className="type-label text-meadow-cream/75 mb-5"
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.15, ease: EASE }}
@@ -75,10 +138,8 @@ export function Hero() {
             </motion.p>
 
             <h1
-              className="type-display text-meadow-cream"
-              // Height-aware: three lines at 0.85 must clear the stats row on
-              // a 900px laptop as surely as on a tall monitor.
-              style={{ fontSize: 'clamp(48px, min(11vw, 15svh), 150px)' }}
+              className="type-display text-meadow-cream max-w-[min(100%,1100px)]"
+              style={{ fontSize: 'clamp(44px, min(9.5vw, 12.5svh), 132px)' }}
             >
               <span className="sr-only">{HEADLINE.join(' ')}</span>
               {HEADLINE.map((line, index) => (
@@ -102,80 +163,92 @@ export function Hero() {
                 </span>
               ))}
             </h1>
+          </Container>
 
+          <Container>
             <motion.div
-              className="mt-8 flex flex-col gap-6 sm:flex-row sm:items-center"
+              className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between"
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.9, delay: 0.7, ease: EASE }}
             >
-              <p className="text-body-lg text-meadow-cream/80 max-w-[46ch]">
-                Event coverage and real estate films, flown by a licensed crew and
-                cut for the screen they are going to live on.
-              </p>
-            </motion.div>
-
-            <motion.div
-              className="mt-8 flex flex-wrap items-center gap-3"
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.9, delay: 0.82, ease: EASE }}
-            >
-              <Button
-                as="a"
-                href="#contact"
-                variant="filled-cream"
-                onClick={(event: React.MouseEvent) => {
-                  event.preventDefault();
-                  scrollTo('#contact');
-                }}
-              >
-                Book a flight
-                <Arrow />
-              </Button>
-              <Button
-                as="a"
-                href="#work"
-                variant="ghost-cream"
-                onClick={(event: React.MouseEvent) => {
-                  event.preventDefault();
-                  scrollTo('#work');
-                }}
-              >
-                See the reel
-              </Button>
-            </motion.div>
-          </div>
-        </Container>
-
-        <Container className="mt-8">
-          <motion.dl
-            className="border-meadow-cream/25 grid grid-cols-2 gap-x-6 gap-y-6 border-t pt-6 sm:grid-cols-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 1, ease: EASE }}
-          >
-            {STATS.map((stat) => (
-              <div key={stat.label}>
-                <dt className="type-label text-meadow-cream/60">{stat.label}</dt>
-                <dd className="type-heading-sm text-meadow-cream mt-2">
-                  {stat.value}
-                </dd>
+              <div className="max-w-[42ch]">
+                <p className="text-body-lg text-meadow-cream/85">
+                  Event coverage and real estate films, flown by a licensed crew and
+                  cut for the screen they are going to live on.
+                </p>
+                <div className="mt-6 flex flex-wrap items-center gap-3">
+                  <Button
+                    as="a"
+                    href="#contact"
+                    variant="filled-cream"
+                    onClick={(event: React.MouseEvent) => {
+                      event.preventDefault();
+                      scrollTo('#contact');
+                    }}
+                  >
+                    Book a flight
+                    <Arrow />
+                  </Button>
+                  <Button
+                    as="a"
+                    href="#events"
+                    variant="ghost-cream"
+                    onClick={(event: React.MouseEvent) => {
+                      event.preventDefault();
+                      scrollTo('#events');
+                    }}
+                  >
+                    What we shoot
+                  </Button>
+                </div>
               </div>
-            ))}
-          </motion.dl>
 
-          <motion.p
-            aria-hidden="true"
-            className="type-label text-meadow-cream/45 mt-6 flex items-center gap-2"
-            animate={reduced ? undefined : { opacity: [0.45, 1, 0.45] }}
-            transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            Scroll to fly
-            <span aria-hidden="true">↓</span>
-          </motion.p>
-        </Container>
-      </Band>
+              {interactive ? (
+                <div className="w-full lg:max-w-[620px]">
+                  <Scrubber
+                    progress={progress}
+                    onSeek={onSeek}
+                    onScrubStart={() => {
+                      shotState.immediate = true;
+                    }}
+                    onScrubEnd={() => {
+                      shotState.immediate = false;
+                    }}
+                  />
+                  <p className="type-label text-meadow-cream/45 mt-4">
+                    Real-time 3D previsualisation — not footage
+                  </p>
+                </div>
+              ) : (
+                <ol className="text-meadow-cream/70 flex flex-wrap gap-x-6 gap-y-1">
+                  {SHOT_BEATS.map((beat, i) => (
+                    <li key={beat.label} className="type-label">
+                      {String(i + 1).padStart(2, '0')} {beat.label}
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </motion.div>
+
+            <motion.dl
+              className="border-meadow-cream/25 mt-8 grid grid-cols-2 gap-x-6 gap-y-6 border-t pt-6 sm:grid-cols-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1, delay: 1, ease: EASE }}
+            >
+              {STATS.map((stat) => (
+                <div key={stat.label}>
+                  <dt className="type-label text-meadow-cream/65">{stat.label}</dt>
+                  <dd className="type-heading-sm text-meadow-cream mt-2">
+                    {stat.value}
+                  </dd>
+                </div>
+              ))}
+            </motion.dl>
+          </Container>
+        </Band>
+      </div>
     </Section>
   );
 }

@@ -22,7 +22,6 @@ export type NavLink = { label: string; href: string };
 export const NAV_LINKS: NavLink[] = [
   { label: 'Events', href: '#events' },
   { label: 'Real estate', href: '#real-estate' },
-  { label: 'The shot', href: '#shot' },
   { label: 'Booking', href: '#contact' },
 ];
 
@@ -32,7 +31,6 @@ export const SECTION_IDS = [
   'manifesto',
   'events',
   'real-estate',
-  'shot',
   'contact',
 ] as const;
 

@@ -22,36 +22,35 @@ const ROOF_PITCH = 0.62; // radians — a steep alpine pitch sheds snow and
 function useLodgeMaterials() {
   return useMemo(() => {
     const timber = new THREE.MeshStandardMaterial({
-      color: '#4a3d33',
+      color: '#6d5940',
       roughness: 0.86,
       metalness: 0,
     });
     const darkTimber = new THREE.MeshStandardMaterial({
-      color: '#2b2320',
+      color: '#42342a',
       roughness: 0.9,
       metalness: 0,
     });
     const stone = new THREE.MeshStandardMaterial({
-      color: '#56565c',
+      color: '#8d8b86',
       roughness: 0.95,
       metalness: 0.02,
     });
     const roof = new THREE.MeshStandardMaterial({
-      color: '#32323c',
+      color: '#43434e',
       roughness: 0.72,
       metalness: 0.08,
     });
     // Interior light, seen through glass. Emissive rather than lit so it
     // survives the dusk exposure without blowing out the facade.
-    // Base colour near-black so the emissive does all the work: a bright
-    // base plus a bright emissive clips to flat white and destroys the
-    // warmth (and any UI sitting over it).
+    // Daylight glass reads as a dark, sky-reflecting plane — not a lamp.
+    // The faint emissive only stops it reading as a hole in the wall.
     const glass = new THREE.MeshStandardMaterial({
-      color: '#100c08',
-      emissive: new THREE.Color('#ffcf96'),
-      emissiveIntensity: 1.6,
-      roughness: 0.3,
-      metalness: 0,
+      color: '#2c3f52',
+      emissive: new THREE.Color('#ffe6bd'),
+      emissiveIntensity: 0.07,
+      roughness: 0.22,
+      metalness: 0.1,
     });
     return { timber, darkTimber, stone, roof, glass };
   }, []);
@@ -108,7 +107,9 @@ export function Lodge() {
           key={side}
           material={m.roof}
           position={[(side * half) / 2, 4 + rise / 2, 0]}
-          rotation={[0, 0, -side * (Math.PI / 2 - ROOF_PITCH)]}
+          // Sign matters: negated, the plank runs up-and-out from the ridge
+          // and the two planes cross above it instead of meeting at it.
+          rotation={[0, 0, side * (Math.PI / 2 - ROOF_PITCH)]}
         >
           <boxGeometry args={[0.22, slope + 0.5, 6.8]} />
         </mesh>
@@ -197,8 +198,8 @@ export function Lodge() {
       ))}
       <pointLight
         position={[0, 2.6, -2.2]}
-        intensity={9}
-        distance={10}
+        intensity={2}
+        distance={8}
         color="#ffd9a0"
       />
 
@@ -208,15 +209,15 @@ export function Lodge() {
       </mesh>
       <pointLight
         position={[0.4, 3.05, 6.2]}
-        intensity={9}
-        distance={9}
+        intensity={2}
+        distance={7}
         color="#ffc98a"
       />
       {/* Interior spill through the front glass */}
       <pointLight
         position={[0, 2.6, 2.2]}
-        intensity={14}
-        distance={11}
+        intensity={3}
+        distance={9}
         color="#ffd9a0"
       />
     </group>

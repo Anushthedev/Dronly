@@ -18,8 +18,9 @@ import { smoothstep } from './utils';
  *                the viewer is flying alongside rather than something that
  *                has to be chased around the valley.
  *
- * Stages 4→5 are the scrubbable lodge sequence; there the camera comes from
- * lib/shot.ts instead, and these keys only cover the hand-off.
+ * Stages 0→1 are the hero, which is the scrubbable lodge sequence; there
+ * the camera comes from lib/shot.ts instead, and these keys only cover the
+ * hand-off.
  */
 
 export type CameraKey = {
@@ -30,24 +31,24 @@ export type CameraKey = {
 };
 
 export const CAMERA_PATH: CameraKey[] = [
-  // Hero — high over the valley, the lodge a distant point of light.
-  { at: 0, position: [46, 30, 76], target: [0, 8, 0], fov: 40 },
-  { at: 0.6, position: [38, 26, 66], target: [0, 7, 0], fov: 40 },
-  // Studio — descending toward the treeline.
-  { at: 1, position: [26, 20, 52], target: [0, 6, 0], fov: 42 },
-  { at: 1.6, position: [8, 16, 46], target: [0, 6, 0], fov: 42 },
+  // Stage 0 → 1 is the hero, where the scrubbable shot owns the camera.
+  // These two keys exist so releasing or never taking control is a move
+  // rather than a jump cut: they match the shot's first and last frames.
+  { at: 0, position: [1.5, 1.4, 30], target: [0, 3, 0], fov: 42 },
+  { at: 1, position: [-3.5, 4.2, 17], target: [-0.5, 3.2, 2], fov: 34 },
+  // Studio — pulling back off the property.
+  { at: 1.3, position: [-14, 10, 34], target: [0, 4, 0], fov: 40 },
+  { at: 1.7, position: [6, 16, 44], target: [0, 5, 0], fov: 42 },
   // Events — a fast low sweep across the front of the valley.
   { at: 2, position: [-26, 11, 38], target: [0, 6, 0], fov: 46 },
-  { at: 2.5, position: [-40, 14, 8], target: [0, 6, 0], fov: 46 },
-  // Real estate — the survey pass, high and looking down.
+  { at: 2.5, position: [-42, 15, 6], target: [0, 6, 0], fov: 46 },
+  // Real estate — the survey pass, high and three-quarter so the lit
+  // elevation reads rather than a flat roof.
   { at: 3, position: [-24, 30, 26], target: [0, 3, 0], fov: 44 },
   { at: 3.5, position: [10, 32, 30], target: [0, 3, 0], fov: 44 },
-  // Hand-off: stage 4 meets the first frame of the scrubbable shot exactly,
-  // so taking or releasing control is never a jump cut.
-  { at: 4, position: [1.5, 1.4, 30], target: [0, 3, 0], fov: 42 },
-  { at: 5, position: [-3.5, 4.2, 17], target: [-0.5, 3.2, 2], fov: 34 },
-  // Contact — pulling back off the deck as the page ends.
-  { at: 5.6, position: [-12, 7, 30], target: [0, 3.5, 0], fov: 38 },
+  // Contact — settling back down toward the deck as the page ends.
+  { at: 4, position: [-14, 8, 32], target: [0, 4, 0], fov: 38 },
+  { at: 4.6, position: [-22, 7, 40], target: [0, 4, 0], fov: 38 },
 ];
 
 /** Drone pose in camera-local space: -Z is in front of the lens. */
@@ -62,35 +63,37 @@ export type DroneKey = {
 };
 
 export const DRONE_PATH: DroneKey[] = [
+  // Through the hero the viewer *is* the aircraft, so the model is not in
+  // its own shot. It flies back into frame once the narrative resumes.
   {
     at: 0,
     position: [1.5, -0.7, -7.2],
     rotation: [0.1, -0.3, 0],
-    scale: 1,
+    scale: 0.8,
     rotor: 1,
-    opacity: 1,
+    opacity: 0,
   },
   {
-    at: 0.6,
+    at: 1,
+    position: [1.5, -0.7, -7.2],
+    rotation: [0.1, -0.3, 0],
+    scale: 0.8,
+    rotor: 1,
+    opacity: 0,
+  },
+  {
+    at: 1.25,
     position: [2.2, 0.4, -7.8],
     rotation: [0.18, -0.6, -0.12],
-    scale: 0.95,
+    scale: 0.76,
     rotor: 1.3,
     opacity: 1,
   },
   {
-    at: 1,
-    position: [3.6, 1.3, -9.6],
-    rotation: [0.12, -0.95, 0.06],
-    scale: 0.85,
-    rotor: 1.1,
-    opacity: 1,
-  },
-  {
-    at: 1.6,
+    at: 1.7,
     position: [1.1, 1.0, -8.6],
     rotation: [0.16, -0.2, -0.18],
-    scale: 0.9,
+    scale: 0.72,
     rotor: 1.2,
     opacity: 1,
   },
@@ -98,7 +101,7 @@ export const DRONE_PATH: DroneKey[] = [
     at: 2,
     position: [-3.4, -0.9, -6.6],
     rotation: [0.3, 0.8, 0.4],
-    scale: 1.05,
+    scale: 0.84,
     rotor: 1.9,
     opacity: 1,
   },
@@ -106,7 +109,7 @@ export const DRONE_PATH: DroneKey[] = [
     at: 2.5,
     position: [-2.2, 0.4, -6.2],
     rotation: [0.16, 0.3, -0.24],
-    scale: 1.1,
+    scale: 0.88,
     rotor: 1.7,
     opacity: 1,
   },
@@ -114,7 +117,7 @@ export const DRONE_PATH: DroneKey[] = [
     at: 3,
     position: [2.7, 1.7, -8.4],
     rotation: [0.85, -0.3, -0.06],
-    scale: 0.95,
+    scale: 0.76,
     rotor: 1.3,
     opacity: 1,
   },
@@ -122,41 +125,23 @@ export const DRONE_PATH: DroneKey[] = [
     at: 3.5,
     position: [2.0, 1.2, -7.4],
     rotation: [0.65, 0.2, 0.14],
-    scale: 1,
+    scale: 0.8,
     rotor: 1.35,
     opacity: 1,
   },
-  // The scrubbable sequence is the drone's own point of view, so the model
-  // itself gets out of the way.
   {
-    at: 3.85,
-    position: [0.9, -0.4, -6.4],
-    rotation: [0.2, 0.4, -0.2],
-    scale: 1,
-    rotor: 1.6,
-    opacity: 0,
-  },
-  {
-    at: 5,
-    position: [0.9, -0.4, -6.4],
-    rotation: [0.2, 0.4, -0.2],
-    scale: 1,
-    rotor: 1.6,
-    opacity: 0,
-  },
-  {
-    at: 5.3,
+    at: 4,
     position: [1.2, -0.6, -6.8],
     rotation: [0.06, -0.2, 0],
-    scale: 1,
+    scale: 0.8,
     rotor: 0.9,
     opacity: 1,
   },
   {
-    at: 5.6,
+    at: 4.6,
     position: [1.2, -0.6, -6.8],
     rotation: [0.06, -0.2, 0],
-    scale: 1,
+    scale: 0.8,
     rotor: 0.9,
     opacity: 1,
   },

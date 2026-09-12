@@ -51,7 +51,7 @@ export function Terrain() {
 
   return (
     <mesh geometry={geometry} receiveShadow>
-      <meshStandardMaterial color="#4a5c50" roughness={1} metalness={0} />
+      <meshStandardMaterial color="#55703f" roughness={1} metalness={0} />
     </mesh>
   );
 }
@@ -117,11 +117,11 @@ export function Forest({ count = 260 }: { count?: number }) {
     <group>
       <instancedMesh ref={cones} args={[undefined, undefined, count]}>
         <coneGeometry args={[1.45, 6.2, 7]} />
-        <meshStandardMaterial color="#2b4034" roughness={0.95} metalness={0} />
+        <meshStandardMaterial color="#2f4a2c" roughness={0.95} metalness={0} />
       </instancedMesh>
       <instancedMesh ref={trunks} args={[undefined, undefined, count]}>
         <cylinderGeometry args={[0.16, 0.24, 1.6, 6]} />
-        <meshStandardMaterial color="#33271f" roughness={1} metalness={0} />
+        <meshStandardMaterial color="#4a3a29" roughness={1} metalness={0} />
       </instancedMesh>
     </group>
   );
@@ -133,7 +133,10 @@ export function Lake() {
   return (
     <mesh position={[58, -0.35, -40]} rotation={[-Math.PI / 2, 0, 0]}>
       <circleGeometry args={[30, 48]} />
-      <meshStandardMaterial color="#0d1826" roughness={0.08} metalness={0.9} />
+      {/* Low metalness on purpose: there is no environment map in this
+          scene, so a metal surface has nothing to reflect and renders as a
+          black hole in the middle of a sunlit valley. */}
+      <meshStandardMaterial color="#4d92c4" roughness={0.18} metalness={0.05} />
     </mesh>
   );
 }
@@ -150,9 +153,9 @@ export function Sky() {
         side: THREE.BackSide,
         depthWrite: false,
         uniforms: {
-          top: { value: new THREE.Color('#0b1020') },
-          middle: { value: new THREE.Color('#2a2f4d') },
-          horizon: { value: new THREE.Color('#7d5aa8') },
+          top: { value: new THREE.Color('#2f6ec2') },
+          middle: { value: new THREE.Color('#7fb1e0') },
+          horizon: { value: new THREE.Color('#cfe0ee') },
         },
         vertexShader: `
           varying vec3 vWorld;
@@ -189,11 +192,14 @@ export function Sky() {
 export function LodgeLights() {
   return (
     <>
-      {/* Dusk key, low and behind — rims the roofline against the sky. */}
-      <directionalLight position={[-42, 26, -60]} intensity={1.5} color="#8b6ecb" />
-      {/* Cool sky fill from above, warm bounce from the ground. */}
-      <hemisphereLight args={['#3d4a72', '#14100d', 1.1]} />
-      <ambientLight intensity={0.18} color="#6b7ba8" />
+      {/* Sun: high and slightly behind camera-left, the way a midday
+          aerial is usually flown — cross-lit so the roof planes separate
+          rather than flattening out. */}
+      <directionalLight position={[64, 86, 44]} intensity={4.4} color="#fff4e2" />
+      {/* Sky above, warm ground bounce below. Does most of the work of
+          filling shadow on a clear day. */}
+      <hemisphereLight args={['#a8c9ee', '#4e5233', 2.4]} />
+      <ambientLight intensity={0.42} color="#cfe0f2" />
     </>
   );
 }
