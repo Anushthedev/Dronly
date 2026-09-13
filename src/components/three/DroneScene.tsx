@@ -8,9 +8,11 @@ import { useScrollApi } from '@/components/providers/ScrollProvider';
 import { DroneRig } from '@/components/three/DroneRig';
 import { Lodge } from '@/components/three/lodge/Lodge';
 import {
+  DistantRidges,
   Forest,
   Lake,
   LodgeLights,
+  Scatter,
   Sky,
   Terrain,
 } from '@/components/three/lodge/Wilderness';
@@ -104,7 +106,7 @@ export function DroneScene({ quality }: { quality: 'full' | 'lite' }) {
   useEffect(() => {
     // Aerial haze. Without it the treeline ends at a hard edge and the wide
     // frames look like a model on a table rather than a valley.
-    scene.fog = new THREE.Fog('#b9d2e6', 120, 420);
+    scene.fog = new THREE.Fog('#c3d6e6', 140, 460);
     return () => {
       scene.fog = null;
     };
@@ -114,9 +116,11 @@ export function DroneScene({ quality }: { quality: 'full' | 'lite' }) {
     <>
       <CameraRig quality={quality} />
       <Sky />
-      <LodgeLights />
+      <LodgeLights quality={quality} />
+      <DistantRidges />
       <Terrain />
-      <Forest count={quality === 'full' ? 260 : 120} />
+      <Forest count={quality === 'full' ? 320 : 140} />
+      <Scatter count={quality === 'full' ? 90 : 40} />
       <Lake />
       <Lodge />
     </>

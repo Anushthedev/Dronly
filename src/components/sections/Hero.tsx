@@ -10,7 +10,7 @@ import { Band, Container, Section } from '@/components/ui/Section';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useSceneTier } from '@/hooks/useSceneTier';
 import { shotState } from '@/lib/shotState';
-import { SHOT_BEATS, SITE, STATS } from '@/lib/site';
+import { SITE, STATS } from '@/lib/site';
 import { clamp } from '@/lib/utils';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -120,11 +120,11 @@ export function Hero() {
               readable sits on its own scrim rather than on raw sky. */}
           <span
             aria-hidden="true"
-            className="from-hillside-ink/70 pointer-events-none absolute inset-x-0 top-0 -z-10 h-[46svh] bg-gradient-to-b via-[#16233a]/30 to-transparent"
+            className="from-hillside-ink/55 pointer-events-none absolute inset-x-0 top-0 -z-10 h-[40svh] bg-gradient-to-b via-[#16233a]/18 to-transparent"
           />
           <span
             aria-hidden="true"
-            className="from-hillside-ink/80 pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-[52svh] bg-gradient-to-t via-[#16233a]/40 to-transparent"
+            className="from-hillside-ink/72 pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-[46svh] bg-gradient-to-t via-[#16233a]/26 to-transparent"
           />
 
           <Container>
@@ -220,15 +220,7 @@ export function Hero() {
                     Real-time 3D previsualisation — not footage
                   </p>
                 </div>
-              ) : (
-                <ol className="text-meadow-cream/70 flex flex-wrap gap-x-6 gap-y-1">
-                  {SHOT_BEATS.map((beat, i) => (
-                    <li key={beat.label} className="type-label">
-                      {String(i + 1).padStart(2, '0')} {beat.label}
-                    </li>
-                  ))}
-                </ol>
-              )}
+              ) : null}
             </motion.div>
 
             <motion.dl
