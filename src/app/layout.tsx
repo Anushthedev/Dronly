@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from 'next';
 import { Antonio, Inter } from 'next/font/google';
 
 import { ScrollProvider } from '@/components/providers/ScrollProvider';
-import { AerialStage } from '@/components/three/AerialStage';
 import { Footer } from '@/components/ui/Footer';
 import { Nav } from '@/components/ui/Nav';
 import { ScrollProgress } from '@/components/ui/ScrollProgress';
@@ -68,14 +67,13 @@ export default function RootLayout({
     <html lang="en" className={`${grotesk.variable} ${screamer.variable}`}>
       <body>
         {/*
-          Opaque ground behind everything. The 3D stage sits above this at
-          -z-10 and below the document; with no JS at all, the sky sections
-          still land on ink instead of on bare cream.
+          Opaque ground behind everything, so a `sky` band with no plate of
+          its own still lands on ink rather than bare cream — including
+          before any JS runs.
         */}
         <div aria-hidden="true" className="fixed inset-0 -z-20 bg-[#08080a]" />
 
         <ScrollProvider>
-          <AerialStage />
           <Nav />
           <ScrollProgress />
           <main id="main">{children}</main>

@@ -36,21 +36,6 @@ export const SECTION_IDS = [
 
 export type SectionId = (typeof SECTION_IDS)[number];
 
-/**
- * The headline changes with the shot. Each line belongs to the beat of the
- * flight the camera is flying underneath it, so the hero reads as one
- * continuous sentence told across the pass rather than a fixed slogan
- * sitting on top of moving pictures.
- *
- * Indices match SHOT_BEATS.
- */
-export const HERO_LINES: string[][] = [
-  ['We come', 'in low'],
-  ['Then', 'we rise'],
-  ['All the way', 'around'],
-  ['The whole', 'place at once'],
-  ['Down to', 'the glass'],
-];
 
 export const EVENT_SERVICES = [
   {
@@ -128,12 +113,33 @@ export type ShotBeat = {
   note: string;
 };
 
+/**
+ * The four beats of the hero clip, as flown.
+ *
+ * These are read off the footage rather than authored ahead of it: the
+ * camera comes in low over the meadow, the treeline opens, it lifts, and it
+ * arrives on the deck. They mark the scrubber and name the playhead for
+ * assistive tech — nothing draws them as text.
+ */
 export const SHOT_BEATS: ShotBeat[] = [
-  { at: 0, label: 'Approach', note: 'Low and slow through the treeline' },
-  { at: 0.24, label: 'Reveal', note: 'Climb until the roofline breaks cover' },
-  { at: 0.46, label: 'Orbit', note: 'A full pass to place it on its lot' },
-  { at: 0.7, label: 'Wide', note: 'High and back for the establishing frame' },
-  { at: 1, label: 'Windows', note: 'Push in on the light in the glass' },
+  { at: 0, label: 'Approach', note: 'Low and fast over the meadow' },
+  { at: 0.3, label: 'Closing', note: 'The treeline opens on the lodge' },
+  { at: 0.62, label: 'Rise', note: 'The camera lifts off the grass' },
+  { at: 1, label: 'Arrival', note: 'In on the deck and the roofline' },
+];
+
+/**
+ * The headline changes with the shot. Each line belongs to the beat of the
+ * flight playing underneath it, so the hero reads as one sentence told
+ * across the pass rather than a fixed slogan sitting on moving pictures.
+ *
+ * Indices match SHOT_BEATS.
+ */
+export const HERO_LINES: string[][] = [
+  ['We come', 'in low'],
+  ['Fast', 'and quiet'],
+  ['Then', 'we rise'],
+  ['And there', 'it is'],
 ];
 
 export const SERVICE_OPTIONS = [

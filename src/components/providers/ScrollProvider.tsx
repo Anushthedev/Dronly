@@ -13,7 +13,6 @@ import {
 
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
-import { syncScrollTrigger } from '@/lib/gsap';
 import { SECTION_IDS } from '@/lib/site';
 import { clamp } from '@/lib/utils';
 
@@ -163,7 +162,6 @@ export function ScrollProvider({ children }: { children: ReactNode }) {
       next.stage = toStage(y, boundaries.current);
       next.velocity = velocity;
       subscribers.current.forEach((fn) => fn(next));
-      syncScrollTrigger();
     };
 
     remeasure();

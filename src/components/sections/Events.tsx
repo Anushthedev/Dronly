@@ -6,6 +6,7 @@ import {
   RevealItem,
   RevealLines,
 } from '@/components/ui/Reveal';
+import { Plate } from '@/components/ui/Plate';
 import {
   Band,
   Container,
@@ -48,7 +49,9 @@ export function Events() {
       </Band>
 
       {/* Establishing band — full bleed, no frame: the scene is the image. */}
-      <Band tone="sky" className="min-h-[78svh]" />
+      <Band tone="sky" className="min-h-[78svh]">
+        <Plate src="/plate-meadow.jpg" position="center" />
+      </Band>
 
       <CreamCurve />
 
@@ -113,6 +116,7 @@ export function Events() {
 
       {/* Sky band — the drone banks past the lodge behind the pull quote. */}
       <Band tone="sky" className="flex min-h-[70svh] items-center py-30">
+        <Plate src="/plate-lodge.jpg" position="top" />
         <Container>
           <Reveal>
             <blockquote>

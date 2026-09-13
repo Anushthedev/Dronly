@@ -6,10 +6,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useScrollApi } from '@/components/providers/ScrollProvider';
 import { Arrow, Button } from '@/components/ui/Button';
 import { Scrubber } from '@/components/ui/Scrubber';
+import { ShotFilm } from '@/components/ui/ShotFilm';
 import { Band, Container, Section } from '@/components/ui/Section';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useSceneTier } from '@/hooks/useSceneTier';
-import { shotState } from '@/lib/shotState';
 import { HERO_LINES, SHOT_BEATS, SITE } from '@/lib/site';
 import { clamp } from '@/lib/utils';
 
@@ -78,8 +78,6 @@ export function Hero() {
       }
       const t = clamp((y - bounds.top) / bounds.range);
       progress.current = t;
-      shotState.progress = t;
-      shotState.active = y < bounds.top + bounds.range + window.innerHeight * 0.4;
 
       const next = beatAt(t);
       if (next !== lastBeat) {
@@ -99,8 +97,6 @@ export function Hero() {
       unsubscribe();
       observer.disconnect();
       window.removeEventListener('resize', remeasure);
-      shotState.active = false;
-      shotState.immediate = false;
     };
   }, [interactive, state, subscribe]);
 
@@ -133,7 +129,26 @@ export function Hero() {
               : 'flex min-h-[100svh] flex-col justify-between pt-24 pb-8 sm:pt-28 sm:pb-12'
           }
         >
-          {/* The scene is bright daylight, so everything that has to stay
+          {tier !== null && tier !== 'still' && (
+            <ShotFilm
+              progress={progress}
+              src="/hero.mp4"
+              poster="/hero-poster.jpg"
+              mode={interactive ? 'scrub' : 'loop'}
+              className="-z-20"
+            />
+          )}
+          {tier === 'still' && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src="/hero-poster.jpg"
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 -z-20 size-full object-cover"
+            />
+          )}
+
+          {/* The clip is bright daylight, so everything that has to stay
               readable sits on its own scrim rather than on raw sky. */}
           <span
             aria-hidden="true"
@@ -217,16 +232,7 @@ export function Hero() {
 
               {interactive && (
                 <div className="w-full lg:max-w-[620px]">
-                  <Scrubber
-                    progress={progress}
-                    onSeek={onSeek}
-                    onScrubStart={() => {
-                      shotState.immediate = true;
-                    }}
-                    onScrubEnd={() => {
-                      shotState.immediate = false;
-                    }}
-                  />
+                  <Scrubber progress={progress} onSeek={onSeek} />
                 </div>
               )}
             </div>

@@ -67,7 +67,7 @@ export function Footer() {
               © {year} {SITE.name} — {SITE.license}
             </span>
             <span className="type-label text-meadow-cream/55">
-              Built for flight
+              Hero film is AI-generated illustration, not a Dronly flight
             </span>
           </div>
         </Container>

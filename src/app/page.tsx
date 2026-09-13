@@ -6,12 +6,9 @@ import { RealEstate } from '@/components/sections/RealEstate';
 import { SkyCurve } from '@/components/ui/Section';
 
 /**
- * Section order is the flight plan. `src/lib/flight.ts` choreographs the
- * camera against these ids in this order — reorder them here and the
- * keyframes in that file need the same treatment.
- *
- * The hero owns the scrubbable shot, so it is both the first section and
- * the only one that takes the camera away from the narrative path.
+ * The hero owns the only animation on the page: the flight clip, scrubbed
+ * by scroll. Everything below it holds still, and the section dividers are
+ * frames lifted from that same clip.
  */
 export default function Home() {
   return (

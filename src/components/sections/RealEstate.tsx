@@ -7,6 +7,7 @@ import {
   RevealItem,
   RevealLines,
 } from '@/components/ui/Reveal';
+import { Plate } from '@/components/ui/Plate';
 import {
   Band,
   Container,
@@ -46,7 +47,9 @@ export function RealEstate() {
       </Band>
 
       {/* The survey pass — the camera is directly over the property here. */}
-      <Band tone="sky" className="min-h-[82svh]" />
+      <Band tone="sky" className="min-h-[82svh]">
+        <Plate src="/plate-lodge.jpg" position="center" />
+      </Band>
 
       <CreamCurve />
 

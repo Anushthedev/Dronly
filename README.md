@@ -122,14 +122,49 @@ To re-time the animation, edit `FLIGHT_PATH`. To re-order the story, edit
 
 ---
 
-## There is no photography
+## The hero film
 
-Every visual on this site is the same live 3D scene: a wilderness lodge in a
-forested valley at dusk. There is no stock, no borrowed clips, and no video
-players standing empty waiting for footage that does not exist yet.
+`public/hero.mp4` is the hero: a ten-second aerial pass over an alpine
+lodge, generated in Google Flow, scrubbed by scroll.
 
-The scene is a sunlit forested valley at midday. It is fixed behind the
-document, and sections marked `sky` are
+**It is encoded with every frame as a keyframe**, and that is not an
+accident. A browser can only seek `video.currentTime` to a keyframe; the
+delivered file had exactly one in ten seconds, so every seek decoded from
+the top and the picture stuck and then jumped. Re-encoding all-intra costs
+roughly 3× the bytes (6.5 MB at 720p/CRF 28) and buys frame-accurate
+scrubbing. If you replace the clip, re-encode it the same way:
+
+```bash
+ffmpeg -i source.mp4 -an -c:v libx264 -preset slow -crf 28 -pix_fmt yuv420p \
+  -g 1 -keyint_min 1 -sc_threshold 0 -movflags +faststart public/hero.mp4
+```
+
+MP4/H.264 only. VP9 is poor at all-intra — the same clip came out at 29 MB
+— and H.264 plays everywhere that matters.
+
+Seeks are issued from a rAF loop, not from the scroll handler: assigning
+`currentTime` several times within one frame only queues work the decoder
+discards. Phones and low-power devices get the same file autoplaying on a
+loop instead of scrubbing, which sidesteps iOS seek behaviour entirely, and
+reduced motion gets the poster frame.
+
+The section dividers are stills lifted from the same clip
+(`plate-meadow.jpg`, `plate-lodge.jpg`), so the whole page reads as one
+piece of film.
+
+**The clip is AI-generated and is not a flight this studio performed.** It
+is indistinguishable from real drone footage of a real property, so the
+footer says so. Keep that line until the footage is real.
+
+## There was no photography
+
+Before the hero film existed, every visual was a live 3D scene rendered in
+React Three Fiber. That scene has been retired — with real footage on the
+page a stylised render a few sections below only looked worse by comparison
+— and three.js, drei and GSAP came out with it. The history is in the git
+log if you want it back.
+
+Sections marked `sky` are
 genuinely transparent — the layout is a stencil over a continuous flight.
 That has one hard consequence worth knowing before editing: **a transparent
 window inside an opaque cream band reveals the cream, not the scene.** Visuals
