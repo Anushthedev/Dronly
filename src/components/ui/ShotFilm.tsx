@@ -7,10 +7,12 @@ import { cn } from '@/lib/utils';
 /**
  * The hero clip, scrubbed by scroll.
  *
- * `video.currentTime` can only land on a keyframe, so the file is encoded
- * with every frame as a keyframe (see the note in the README). Without that
- * the source had exactly one keyframe in ten seconds and every seek decoded
- * from the top, which reads as the picture sticking and then jumping.
+ * The file is encoded with a five-frame GOP. Browsers seek by jumping to
+ * the preceding keyframe and decoding forward, so seeks land on the exact
+ * frame either way — what a short GOP buys is latency (measured at 14-21ms,
+ * under one frame) without the quality cost of encoding every frame as a
+ * keyframe. The source arrived with one keyframe in ten seconds, which made
+ * every seek decode from the top and the picture stick, then jump.
  *
  * Seeks are issued from a rAF loop rather than from the scroll handler:
  * assigning `currentTime` several times inside one frame just queues work

@@ -127,20 +127,33 @@ To re-time the animation, edit `FLIGHT_PATH`. To re-order the story, edit
 `public/hero.mp4` is the hero: a ten-second aerial pass over an alpine
 lodge, generated in Google Flow, scrubbed by scroll.
 
-**It is encoded with every frame as a keyframe**, and that is not an
-accident. A browser can only seek `video.currentTime` to a keyframe; the
-delivered file had exactly one in ten seconds, so every seek decoded from
-the top and the picture stuck and then jumped. Re-encoding all-intra costs
-roughly 3× the bytes (6.5 MB at 720p/CRF 28) and buys frame-accurate
-scrubbing. If you replace the clip, re-encode it the same way:
+**Encode it with a short GOP and a high quality target.** The clip as
+delivered had a single keyframe in ten seconds, which made every seek decode
+from the top — the picture stuck, then jumped. The fix is a five-frame GOP,
+not an all-keyframe file: browsers seek to the preceding keyframe and decode
+forward, so both land on the exact frame, but all-intra costs enormous
+bitrate for nothing. Measured on this clip:
+
+| encode | size | SSIM | PSNR |
+| --- | --- | --- | --- |
+| GOP 5, CRF 19 | 12.3 MB | 0.988 | 42.0 dB |
+| all-intra, CRF 18 | 18 MB | 0.982 | — |
+| all-intra, CRF 28 | 6.5 MB | 0.943 | 32.0 dB |
+
+All-intra was bigger *and* worse. Seek latency at GOP 5 is 14–21 ms, under
+one frame. To replace the clip:
 
 ```bash
-ffmpeg -i source.mp4 -an -c:v libx264 -preset slow -crf 28 -pix_fmt yuv420p \
-  -g 1 -keyint_min 1 -sc_threshold 0 -movflags +faststart public/hero.mp4
+ffmpeg -i source.mp4 -an -c:v libx264 -preset veryslow -crf 19 -pix_fmt yuv420p \
+  -g 5 -keyint_min 5 -sc_threshold 0 -movflags +faststart public/hero.mp4
 ```
 
-MP4/H.264 only. VP9 is poor at all-intra — the same clip came out at 29 MB
-— and H.264 plays everywhere that matters.
+MP4/H.264 only — VP9 came out at 29 MB all-intra, and H.264 plays everywhere.
+
+**The ceiling is the source resolution.** This clip is 1280x720. A
+full-viewport hero is 1440 CSS pixels wide on a laptop and twice that on a
+retina panel, so it is being upscaled 2-3x and no encode setting recovers
+that. Re-export from Flow at the highest resolution it offers.
 
 Seeks are issued from a rAF loop, not from the scroll handler: assigning
 `currentTime` several times within one frame only queues work the decoder
