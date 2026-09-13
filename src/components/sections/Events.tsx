@@ -14,7 +14,6 @@ import {
   SectionLabel,
   SkyCurve,
 } from '@/components/ui/Section';
-import { LiveCaption } from '@/components/ui/LiveCaption';
 import { EVENT_CAPABILITIES, EVENT_SERVICES } from '@/lib/site';
 
 /**
@@ -49,18 +48,7 @@ export function Events() {
       </Band>
 
       {/* Establishing band — full bleed, no frame: the scene is the image. */}
-      <Band
-        tone="sky"
-        className="flex min-h-[78svh] flex-col justify-end pb-8 sm:pb-12"
-      >
-        <Container>
-          <Reveal distance={40}>
-            <figure>
-              <LiveCaption>The valley we fly</LiveCaption>
-            </figure>
-          </Reveal>
-        </Container>
-      </Band>
+      <Band tone="sky" className="min-h-[78svh]" />
 
       <CreamCurve />
 

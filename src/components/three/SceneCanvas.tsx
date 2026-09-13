@@ -39,7 +39,7 @@ export default function SceneCanvas({
       // Capping DPR at 1.75 is the single biggest win on retina displays;
       // above that the difference is invisible and the fill rate triples.
       dpr={quality === 'full' ? [1, 1.75] : [1, 1.25]}
-      camera={{ position: [46, 30, 76], fov: 40, near: 0.5, far: 420 }}
+      camera={{ position: [46, 30, 76], fov: 40, near: 0.5, far: 1600 }}
       // Soft shadows are the single biggest realism win here: without them
       // the lodge floats and the treeline has no weight on the ground.
       shadows={{ type: THREE.PCFSoftShadowMap }}

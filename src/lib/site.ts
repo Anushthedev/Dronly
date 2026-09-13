@@ -36,12 +36,21 @@ export const SECTION_IDS = [
 
 export type SectionId = (typeof SECTION_IDS)[number];
 
-export const STATS = [
-  { value: '6K', label: 'Capture resolution' },
-  { value: '107', label: 'FAA certification' },
-  { value: '48h', label: 'Delivery target' },
-  { value: '2', label: 'Crew per shoot' },
-] as const;
+/**
+ * The headline changes with the shot. Each line belongs to the beat of the
+ * flight the camera is flying underneath it, so the hero reads as one
+ * continuous sentence told across the pass rather than a fixed slogan
+ * sitting on top of moving pictures.
+ *
+ * Indices match SHOT_BEATS.
+ */
+export const HERO_LINES: string[][] = [
+  ['We come', 'in low'],
+  ['Then', 'we rise'],
+  ['All the way', 'around'],
+  ['The whole', 'place at once'],
+  ['Down to', 'the glass'],
+];
 
 export const EVENT_SERVICES = [
   {

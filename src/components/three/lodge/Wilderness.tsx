@@ -68,18 +68,54 @@ const SHELF = 26;
 const LAKE = { x: 58, z: -40, radius: 30 };
 export const LAKE_LEVEL = -1.4;
 
-export function terrainHeight(x: number, z: number): number {
-  const base = (fbm(x * 0.0085, z * 0.0085) - 0.5) * 62;
-  const detail = (fbm(x * 0.05, z * 0.05) - 0.5) * 3.2;
+/** Above this the slopes are bare; below it, forest. */
+const TREELINE = 30;
+const SNOWLINE = 52;
 
-  let h: number;
-  const d = Math.hypot(x, z);
-  if (d < SHELF) {
-    h = 0;
-  } else {
-    const t = Math.min(1, (d - SHELF) / 40);
-    h = (base + detail) * t * t;
+const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
+const ramp = (t: number) => smooth(clamp01(t));
+
+/**
+ * Ridged noise: folding the signal about its midpoint and squaring it turns
+ * rounded hills into sharp crests. Plain fbm alone gives soft swells, which
+ * is what made the valley read as green blobs rather than mountains.
+ */
+function ridged(x: number, y: number): number {
+  let value = 0;
+  let amplitude = 1;
+  let frequency = 1;
+  let norm = 0;
+  for (let o = 0; o < 4; o += 1) {
+    const n = 1 - Math.abs(valueNoise(x * frequency, y * frequency) * 2 - 1);
+    value += n * n * amplitude;
+    norm += amplitude;
+    amplitude *= 0.52;
+    frequency *= 2.13;
   }
+  return value / norm;
+}
+
+/**
+ * Height field.
+ *
+ * Amplitude grows with distance from the lodge: a flat shelf to build on, a
+ * meadow floor around it, and mountains only out on the rim. That is what a
+ * lodge in a valley actually looks like — and it keeps the camera's working
+ * volume clear, since the flight path would otherwise fly straight into a
+ * peak once the relief got dramatic enough to be convincing.
+ */
+export function terrainHeight(x: number, z: number): number {
+  const d = Math.hypot(x, z);
+
+  const rolling = (fbm(x * 0.013, z * 0.013) - 0.5) * 2;
+  const detail = (fbm(x * 0.06, z * 0.06) - 0.5) * 2.4;
+  const peaks = ridged(x * 0.0062, z * 0.0062);
+
+  const near = ramp((d - SHELF) / 64);
+  const far = ramp((d - 84) / 118);
+
+  let h = rolling * 11 * near + detail * near + peaks * 118 * far;
+  if (d < SHELF) h = 0;
 
   // Carve the lake a basin. Water sitting on top of unmodified ground is
   // the tell that makes a lake read as a disc of plastic laid on grass —
@@ -96,7 +132,7 @@ export function terrainHeight(x: number, z: number): number {
 
 export function Terrain() {
   const { geometry, material } = useMemo(() => {
-    const geo = new THREE.PlaneGeometry(420, 420, 200, 200);
+    const geo = new THREE.PlaneGeometry(760, 760, 300, 300);
     geo.rotateX(-Math.PI / 2);
     const pos = geo.attributes.position as THREE.BufferAttribute;
 
@@ -110,17 +146,25 @@ export function Terrain() {
     // flat green is the other half of why untextured terrain reads fake.
     const colors = new Float32Array(pos.count * 3);
     const normal = geo.attributes.normal as THREE.BufferAttribute;
-    const meadow = new THREE.Color('#66794f');
-    const dry = new THREE.Color('#8b8a63');
-    const rock = new THREE.Color('#847d72');
+    const meadow = new THREE.Color('#5f7a42');
+    const dry = new THREE.Color('#8d8a5c');
+    const rock = new THREE.Color('#7b746a');
     const shore = new THREE.Color('#9d9481');
+    const snow = new THREE.Color('#e8eef2');
     const scratch = new THREE.Color();
 
     for (let i = 0; i < pos.count; i += 1) {
       const h = pos.getY(i);
       const slope = 1 - Math.abs(normal.getY(i));
-      scratch.copy(meadow).lerp(dry, THREE.MathUtils.clamp(h / 22, 0, 1));
-      scratch.lerp(rock, THREE.MathUtils.clamp((slope - 0.12) * 3.4, 0, 1));
+      scratch.copy(meadow).lerp(dry, THREE.MathUtils.clamp(h / 24, 0, 1));
+      scratch.lerp(rock, THREE.MathUtils.clamp((h - TREELINE) / 20, 0, 1));
+      scratch.lerp(rock, THREE.MathUtils.clamp((slope - 0.16) * 3.2, 0, 1));
+      // Snow settles on the tops, but not on faces too steep to hold it.
+      scratch.lerp(
+        snow,
+        THREE.MathUtils.clamp((h - SNOWLINE) / 22, 0, 1) *
+          THREE.MathUtils.clamp(1 - (slope - 0.3) * 2.4, 0, 1),
+      );
       // Wet sand and shingle where the ground approaches the waterline.
       scratch.lerp(
         shore,
@@ -183,8 +227,7 @@ export function Forest({ count = 320 }: { count?: number }) {
     while (placed < count && guard < count * 40) {
       guard += 1;
       const angle = random() * Math.PI * 2;
-      // Denser further out so the treeline reads as a wall from low angles.
-      const radius = 34 + Math.pow(random(), 0.6) * 150;
+      const radius = 34 + Math.pow(random(), 0.62) * 190;
       const x = Math.cos(angle) * radius;
       const z = Math.sin(angle) * radius;
 
@@ -192,8 +235,19 @@ export function Forest({ count = 320 }: { count?: number }) {
       if (Math.abs(x) < 16 && Math.abs(z) < 22) continue;
       if (Math.hypot(x - LAKE.x, z - LAKE.z) < LAKE.radius + 10) continue;
 
-      const scale = 0.7 + random() * 1.7;
       const y = terrainHeight(x, z);
+
+      // Forest stops at the treeline, thinning as it climbs toward it, and
+      // never takes hold on ground too steep to root in.
+      if (y > TREELINE) continue;
+      if (random() < Math.pow(Math.max(0, y) / TREELINE, 1.5)) continue;
+      const gx = terrainHeight(x + 2, z) - terrainHeight(x - 2, z);
+      const gz = terrainHeight(x, z + 2) - terrainHeight(x, z - 2);
+      if (Math.hypot(gx, gz) / 4 > 0.85) continue;
+
+      // Smaller and scrubbier the higher they grow.
+      const altitude = clamp01(Math.max(0, y) / TREELINE);
+      const scale = (0.62 + random() * 1.35) * (1 - altitude * 0.42);
       const lean = (random() - 0.5) * 0.07;
       const spin = random() * Math.PI;
 
@@ -320,9 +374,9 @@ export function DistantRidges() {
   const layers = useMemo(
     () =>
       [
-        { d: 300, h: 58, color: '#8ba0b6', opacity: 0.9, seed: 3 },
-        { d: 380, h: 76, color: '#9fb2c5', opacity: 0.75, seed: 11 },
-        { d: 460, h: 98, color: '#b6c4d2', opacity: 0.6, seed: 29 },
+        { d: 560, h: 150, color: '#93a9c0', opacity: 0.55, seed: 3 },
+        { d: 680, h: 190, color: '#a4b8cc', opacity: 0.42, seed: 11 },
+        { d: 800, h: 236, color: '#b4c4d4', opacity: 0.32, seed: 29 },
       ].map(({ d, h, color, opacity, seed }) => {
         const points: THREE.Vector2[] = [];
         const span = d * 2.6;

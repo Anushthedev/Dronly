@@ -15,7 +15,6 @@ import {
   SectionLabel,
   SkyCurve,
 } from '@/components/ui/Section';
-import { LiveCaption } from '@/components/ui/LiveCaption';
 import { REAL_ESTATE_SERVICES, REAL_ESTATE_STEPS } from '@/lib/site';
 
 /**
@@ -47,18 +46,7 @@ export function RealEstate() {
       </Band>
 
       {/* The survey pass — the camera is directly over the property here. */}
-      <Band
-        tone="sky"
-        className="flex min-h-[82svh] flex-col justify-end pb-8 sm:pb-12"
-      >
-        <Container>
-          <Reveal distance={40}>
-            <figure>
-              <LiveCaption>The property, overhead</LiveCaption>
-            </figure>
-          </Reveal>
-        </Container>
-      </Band>
+      <Band tone="sky" className="min-h-[82svh]" />
 
       <CreamCurve />
 

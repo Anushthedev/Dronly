@@ -68,7 +68,14 @@ export function woodSiding(repeat: [number, number] = [3, 2]) {
       ctx.lineWidth = 0.5 + random() * 1.6;
       ctx.beginPath();
       ctx.moveTo(0, gy);
-      ctx.bezierCurveTo(170, gy + (random() - 0.5) * 5, 340, gy + (random() - 0.5) * 5, 512, gy);
+      ctx.bezierCurveTo(
+        170,
+        gy + (random() - 0.5) * 5,
+        340,
+        gy + (random() - 0.5) * 5,
+        512,
+        gy,
+      );
       ctx.stroke();
     }
 
@@ -166,33 +173,41 @@ export function shingleRoof(repeat: [number, number] = [4, 6]) {
   return finish(canvas, repeat);
 }
 
-/** Meadow grass with dirt patches, for the valley floor. */
-export function groundCover(repeat: [number, number] = [42, 42]) {
+/**
+ * Ground detail — deliberately near-neutral.
+ *
+ * The terrain carries its colour in vertex attributes (meadow, dry grass,
+ * rock, snow, shoreline). A saturated green map would multiply over all of
+ * that and tint the rock and the snowcaps green, which is exactly what made
+ * the peaks read as grassy hills. So this contributes texture and tonal
+ * break-up only, and lets the vertex colours decide the hue.
+ */
+export function groundCover(repeat: [number, number] = [60, 60]) {
   const { canvas, ctx } = makeCanvas(512);
   const random = rng(613);
 
-  ctx.fillStyle = '#5c7a3e';
+  ctx.fillStyle = '#9a9a96';
   ctx.fillRect(0, 0, 512, 512);
 
   // Broad tonal patches first, fine blades on top.
-  for (let i = 0; i < 220; i += 1) {
-    const g = 96 + Math.floor(random() * 46);
-    ctx.fillStyle = `rgba(${Math.round(g * 0.62)}, ${g}, ${Math.round(g * 0.44)}, 0.5)`;
+  for (let i = 0; i < 240; i += 1) {
+    const v = 132 + Math.floor(random() * 58);
+    ctx.fillStyle = `rgba(${v}, ${v + 2}, ${v - 3}, 0.45)`;
     ctx.beginPath();
     ctx.ellipse(
       random() * 512,
       random() * 512,
-      16 + random() * 60,
-      12 + random() * 44,
+      16 + random() * 62,
+      12 + random() * 46,
       random() * Math.PI,
       0,
       Math.PI * 2,
     );
     ctx.fill();
   }
-  for (let i = 0; i < 3400; i += 1) {
-    const g = 84 + Math.floor(random() * 70);
-    ctx.strokeStyle = `rgba(${Math.round(g * 0.55)}, ${g}, ${Math.round(g * 0.4)}, 0.5)`;
+  for (let i = 0; i < 3600; i += 1) {
+    const v = 118 + Math.floor(random() * 74);
+    ctx.strokeStyle = `rgba(${v}, ${v + 3}, ${v - 4}, 0.4)`;
     ctx.lineWidth = 0.7;
     const x = random() * 512;
     const y = random() * 512;
