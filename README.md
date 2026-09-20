@@ -26,10 +26,11 @@ npm run dev      # http://localhost:3000
 
 - **Next.js 15** (App Router) + **React 19** + **TypeScript**
 - **Tailwind CSS v4** — design tokens live in `@theme` inside `src/app/globals.css`
-- **React Three Fiber** + **@react-three/drei** for the 3D layer
-- **GSAP + ScrollTrigger** for scroll-scrubbed transforms (parallax, hero drift)
-- **Framer Motion** for entrance reveals, the menu overlay and the mobile stage
+- **Framer Motion** for the headline cross-fade and the menu overlay
 - **Lenis** for smooth scrolling
+
+The 3D layer this started with (React Three Fiber, drei, GSAP) was retired once
+there was real footage to scrub; see [The hero film](#the-hero-film).
 
 ### Two notes on the brief
 
@@ -313,6 +314,55 @@ at the files and keep the CSS variable names (`--font-fkgroteskneue`,
 **The booking form** currently logs the submission and confirms optimistically.
 Wire `onSubmit` in `src/components/sections/Contact.tsx` to a route handler at
 `app/api/booking/route.ts` or your form provider.
+
+---
+
+## Deployment
+
+The site ships to GitHub Pages from `.github/workflows/pages.yml` on every push
+to `main`. It is a **project** page, so it is served from a subpath rather than
+a domain root:
+
+**https://anushthedev.github.io/Dronly/**
+
+Pages serves static files and cannot run a Node server, so the workflow builds
+a static export and uploads `out/`:
+
+```bash
+DRONLY_STATIC_EXPORT=1 \
+NEXT_PUBLIC_BASE_PATH=/Dronly \
+NEXT_PUBLIC_SITE_URL=https://anushthedev.github.io/Dronly \
+npm run build
+```
+
+Everything about that mode is gated behind `DRONLY_STATIC_EXPORT` in
+`next.config.ts`. `npm run dev` and a plain `npm run build` are untouched: the
+site still runs at the root, with a server, exactly as before.
+
+### Why `asset()` exists
+
+`basePath` rewrites Next's own routes and everything under `_next/`, but it
+deliberately does not touch string literals — `src="/hero.mp4"` is just markup
+as far as the compiler is concerned. So files in `public/` go through
+`asset()` (`src/lib/asset.ts`), which prefixes `NEXT_PUBLIC_BASE_PATH`. The
+prefixing happens inside `ShotFilm` and `Plate` rather than at their call
+sites, so a new divider cannot forget it.
+
+**Adding a file to `public/` means referencing it through `asset()`.** A bare
+`/whatever.jpg` works in development and 404s on Pages.
+
+### One-time repository setting
+
+Pages must be told to take its content from Actions: **Settings → Pages →
+Build and deployment → Source → GitHub Actions**. Without it the workflow
+builds fine and the deploy step fails.
+
+### Moving to a real domain
+
+When `dronly.studio` (or whatever the business registers) is live, the subpath
+goes away: drop `NEXT_PUBLIC_BASE_PATH` from the workflow, point
+`NEXT_PUBLIC_SITE_URL` at the domain, and add a `public/CNAME`. `asset()`
+becomes a no-op on its own — no call sites change.
 
 ---
 

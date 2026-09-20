@@ -10,6 +10,7 @@ import { ShotFilm } from '@/components/ui/ShotFilm';
 import { Band, Container, Section } from '@/components/ui/Section';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useSceneTier } from '@/hooks/useSceneTier';
+import { asset } from '@/lib/asset';
 import { HERO_LINES, SHOT_BEATS, SITE } from '@/lib/site';
 import { clamp } from '@/lib/utils';
 
@@ -141,7 +142,7 @@ export function Hero() {
           {tier === 'still' && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src="/hero-poster.jpg"
+              src={asset('/hero-poster.jpg')}
               alt=""
               aria-hidden="true"
               className="absolute inset-0 -z-20 size-full object-cover"

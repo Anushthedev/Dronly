@@ -1,0 +1,66 @@
+# Publishes the marketing site to GitHub Pages.
+#
+# Pages serves static files and cannot run a Node server, so this builds the
+# Next app with `output: 'export'` and uploads the resulting `out/` directory.
+# The site is a project page, which means it lives under /Dronly rather than
+# at the domain root — hence the base path handed to the build.
+name: Deploy site to GitHub Pages
+
+on:
+  push:
+    branches:
+      # main is the long-term source of truth. The feature branch is here so
+      # the site is live before its pull request merges; drop it afterwards.
+      - main
+      - claude/dronly-marketing-site-jsq7iv
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never let two deploys race. A queued run supersedes an older queued one,
+# but an in-flight deploy is allowed to finish rather than be cancelled.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build the static export
+        env:
+          DRONLY_STATIC_EXPORT: '1'
+          NEXT_PUBLIC_BASE_PATH: /Dronly
+          NEXT_PUBLIC_SITE_URL: https://anushthedev.github.io/Dronly
+        run: npm run build
+
+      # Pages' own pipeline does not run Jekyll, but a repository that later
+      # switches to branch-based publishing would — and Jekyll drops any
+      # directory beginning with an underscore, which is all of `_next/`.
+      - run: touch out/.nojekyll
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

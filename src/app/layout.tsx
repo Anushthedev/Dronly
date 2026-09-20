@@ -29,7 +29,10 @@ const screamer = Antonio({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://dronly.studio'),
+  // Set by the Pages workflow; the custom domain takes over once it exists.
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? 'https://dronly.studio',
+  ),
   title: {
     default: `${SITE.name} — ${SITE.tagline}`,
     template: `%s — ${SITE.name}`,

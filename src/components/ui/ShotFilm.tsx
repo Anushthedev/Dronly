@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type RefObject } from 'react';
 
+import { asset } from '@/lib/asset';
 import { cn } from '@/lib/utils';
 
 /**
@@ -70,7 +71,7 @@ export function ShotFilm({
           a slow connection shows the frame rather than a black rectangle. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={poster}
+        src={asset(poster)}
         alt=""
         aria-hidden="true"
         className="absolute inset-0 size-full object-cover"
@@ -81,8 +82,8 @@ export function ShotFilm({
           'absolute inset-0 size-full object-cover transition-opacity duration-500',
           ready ? 'opacity-100' : 'opacity-0',
         )}
-        src={src}
-        poster={poster}
+        src={asset(src)}
+        poster={asset(poster)}
         preload="auto"
         muted
         playsInline

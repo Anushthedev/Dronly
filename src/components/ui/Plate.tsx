@@ -1,3 +1,5 @@
+import { asset } from '@/lib/asset';
+
 /**
  * A full-bleed still from the hero clip, used as a section divider.
  *
@@ -25,7 +27,7 @@ export function Plate({
     <>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={src}
+        src={asset(src)}
         alt=""
         aria-hidden="true"
         loading="lazy"
