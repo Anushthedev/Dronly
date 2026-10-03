@@ -8,11 +8,12 @@ name: Deploy site to GitHub Pages
 
 on:
   push:
-    branches:
-      # main is the long-term source of truth. The feature branch is here so
-      # the site is live before its pull request merges; drop it afterwards.
-      - main
-      - claude/dronly-marketing-site-jsq7iv
+    # main only. Pages creates a `github-pages` environment whose deployment
+    # branch policy permits the default branch alone, so a run from any other
+    # branch has its deploy job rejected before a single step executes — one
+    # second, no logs. Building on a feature branch would therefore only ever
+    # produce a red job, so the trigger stays on the branch that can deploy.
+    branches: [main]
   workflow_dispatch:
 
 permissions:

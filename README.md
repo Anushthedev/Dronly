@@ -320,7 +320,10 @@ Wire `onSubmit` in `src/components/sections/Contact.tsx` to a route handler at
 ## Deployment
 
 The site ships to GitHub Pages from `.github/workflows/pages.yml` on every push
-to `main`. It is a **project** page, so it is served from a subpath rather than
+to `main`, and nothing else: enabling Pages creates a `github-pages`
+environment whose deployment branch policy permits the default branch alone, so
+a run from a feature branch has its deploy job rejected before a single step
+executes. It is a **project** page, so it is served from a subpath rather than
 a domain root:
 
 **https://anushthedev.github.io/Dronly/**
