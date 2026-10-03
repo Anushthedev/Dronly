@@ -52,7 +52,8 @@ export function Band({
 }: {
   tone?: BandTone;
   className?: string;
-  children: ReactNode;
+  /** Optional: a `sky` band with no children is a window onto the scene. */
+  children?: ReactNode;
   /** React 19 passes refs as a plain prop — no forwardRef needed. */
   ref?: Ref<HTMLDivElement>;
 }) {

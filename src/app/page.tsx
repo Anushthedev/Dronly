@@ -3,13 +3,12 @@ import { Events } from '@/components/sections/Events';
 import { Hero } from '@/components/sections/Hero';
 import { Manifesto } from '@/components/sections/Manifesto';
 import { RealEstate } from '@/components/sections/RealEstate';
-import { Work } from '@/components/sections/Work';
 import { SkyCurve } from '@/components/ui/Section';
 
 /**
- * Section order is the flight plan. `src/lib/flight.ts` choreographs the
- * drone against these six ids in this order — reorder them here and the
- * keyframes in that file need the same treatment.
+ * The hero owns the only animation on the page: the flight clip, scrubbed
+ * by scroll. Everything below it holds still, and the section dividers are
+ * frames lifted from that same clip.
  */
 export default function Home() {
   return (
@@ -19,7 +18,6 @@ export default function Home() {
       <Events />
       <RealEstate />
       <SkyCurve />
-      <Work />
       <Contact />
     </>
   );

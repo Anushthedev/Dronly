@@ -11,7 +11,10 @@ export const SITE = {
   email: 'fly@dronly.studio',
   phone: '+1 (415) 555-0192',
   location: 'San Francisco · Los Angeles · Remote worldwide',
-  license: 'FAA Part 107 certified · $2M liability insured',
+  // PLACEHOLDER — verify before launch. Part 107 is a real certification
+  // you must hold to fly commercially; the insurance figure is a stand-in.
+  // Do not publish either line until both are true.
+  license: 'FAA Part 107 certified · Insured to $1M',
 } as const;
 
 export type NavLink = { label: string; href: string };
@@ -19,7 +22,6 @@ export type NavLink = { label: string; href: string };
 export const NAV_LINKS: NavLink[] = [
   { label: 'Events', href: '#events' },
   { label: 'Real estate', href: '#real-estate' },
-  { label: 'Work', href: '#work' },
   { label: 'Booking', href: '#contact' },
 ];
 
@@ -29,18 +31,11 @@ export const SECTION_IDS = [
   'manifesto',
   'events',
   'real-estate',
-  'work',
   'contact',
 ] as const;
 
 export type SectionId = (typeof SECTION_IDS)[number];
 
-export const STATS = [
-  { value: '480+', label: 'Flights logged' },
-  { value: '12k', label: 'Feet of ceiling' },
-  { value: '6K', label: 'Capture resolution' },
-  { value: '48h', label: 'Standard delivery' },
-] as const;
 
 export const EVENT_SERVICES = [
   {
@@ -103,69 +98,48 @@ export const REAL_ESTATE_STEPS = [
   },
 ] as const;
 
-export type ShowcaseItem = {
-  id: string;
-  title: string;
-  category: string;
-  location: string;
-  year: string;
-  /** Aspect ratio for the placeholder frame. */
-  ratio: '4/5' | '16/9' | '1/1' | '3/4';
-  /** Drop a real still or video in here later. */
-  media?: string;
-  featured?: boolean;
+/**
+ * Beats of the demonstration flight rendered in the "The shot" section.
+ *
+ * This studio has no footage yet, so the site shows a previsualisation —
+ * a real-time 3D render of the flight path we fly over a property — rather
+ * than borrowed clips or invented client work. The section labels it as a
+ * render, in those words. Replace it with a real edit once one exists.
+ */
+export type ShotBeat = {
+  /** Normalised position along the shot, 0 → 1. */
+  at: number;
+  label: string;
+  note: string;
 };
 
-export const SHOWCASE: ShowcaseItem[] = [
-  {
-    id: 'ridgeline',
-    title: 'Ridgeline House',
-    category: 'Real estate',
-    location: 'Mill Valley, CA',
-    year: '2026',
-    ratio: '4/5',
-    featured: true,
-  },
-  {
-    id: 'harbor-lights',
-    title: 'Harbor Lights Festival',
-    category: 'Event',
-    location: 'Long Beach, CA',
-    year: '2026',
-    ratio: '16/9',
-  },
-  {
-    id: 'the-vow',
-    title: 'The Vow — Coastal Ceremony',
-    category: 'Wedding',
-    location: 'Big Sur, CA',
-    year: '2025',
-    ratio: '3/4',
-  },
-  {
-    id: 'quarry-district',
-    title: 'Quarry District',
-    category: 'Development',
-    location: 'Oakland, CA',
-    year: '2025',
-    ratio: '1/1',
-  },
-  {
-    id: 'night-circuit',
-    title: 'Night Circuit',
-    category: 'Motorsport',
-    location: 'Sonoma, CA',
-    year: '2025',
-    ratio: '16/9',
-  },
-  {
-    id: 'glasshouse',
-    title: 'Glasshouse No. 4',
-    category: 'Architecture',
-    location: 'Palo Alto, CA',
-    year: '2024',
-    ratio: '4/5',
-  },
+/**
+ * The four beats of the hero clip, as flown.
+ *
+ * These are read off the footage rather than authored ahead of it: the
+ * camera comes in low over the meadow, the treeline opens, it lifts, and it
+ * arrives on the deck. They mark the scrubber and name the playhead for
+ * assistive tech — nothing draws them as text.
+ */
+export const SHOT_BEATS: ShotBeat[] = [
+  { at: 0, label: 'Approach', note: 'Low and fast over the meadow' },
+  { at: 0.3, label: 'Closing', note: 'The treeline opens on the lodge' },
+  { at: 0.62, label: 'Rise', note: 'The camera lifts off the grass' },
+  { at: 1, label: 'Arrival', note: 'In on the deck and the roofline' },
+];
+
+/**
+ * The headline changes with the shot. Each line belongs to the beat of the
+ * flight playing underneath it, so the hero reads as one sentence told
+ * across the pass rather than a fixed slogan sitting on moving pictures.
+ *
+ * Indices match SHOT_BEATS.
+ */
+export const HERO_LINES: string[][] = [
+  ['We come', 'in low'],
+  ['Fast', 'and quiet'],
+  ['Then', 'we rise'],
+  ['And there', 'it is'],
 ];
 
 export const SERVICE_OPTIONS = [

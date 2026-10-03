@@ -26,10 +26,11 @@ npm run dev      # http://localhost:3000
 
 - **Next.js 15** (App Router) + **React 19** + **TypeScript**
 - **Tailwind CSS v4** — design tokens live in `@theme` inside `src/app/globals.css`
-- **React Three Fiber** + **@react-three/drei** for the 3D layer
-- **GSAP + ScrollTrigger** for scroll-scrubbed transforms (parallax, hero drift)
-- **Framer Motion** for entrance reveals, the menu overlay and the mobile stage
+- **Framer Motion** for the headline cross-fade and the menu overlay
 - **Lenis** for smooth scrolling
+
+The 3D layer this started with (React Three Fiber, drei, GSAP) was retired once
+there was real footage to scrub; see [The hero film](#the-hero-film).
 
 ### Two notes on the brief
 
@@ -74,7 +75,10 @@ src/
 │  │  ├─ LiteStage        Framer Motion fallback (mobile) + static fallback
 │  │  ├─ DroneGlyph       Flat SVG aircraft shared by both fallbacks
 │  │  └─ SceneLoader      Pure-CSS placeholder while the 3D chunk streams
-│  ├─ sections/           Hero, Manifesto, Events, RealEstate, Work, Contact
+│  ├─ three/lodge/
+│  │  ├─ Lodge            Procedural wilderness lodge
+│  │  └─ Wilderness       Terrain, instanced forest, lake, dusk sky
+│  ├─ sections/           Hero, Manifesto, Events, RealEstate, Contact
 │  └─ ui/                 Button, Card, Section/Band, Reveal, MediaFrame,
 │                         Nav, Footer, Marquee, Parallax, ScrollProgress,
 │                         InlineThumb
@@ -82,7 +86,9 @@ src/
 ├─ hooks/                 useReducedMotion, useSceneTier
 └─ lib/
    ├─ site.ts             All copy and showcase data
-   ├─ flight.ts           The keyframed flight path
+   ├─ flight.ts           The keyframed flight path (background drone)
+   ├─ shot.ts             The keyframed lodge shot (the scrubbable sequence)
+   ├─ shotState.ts        The scrubber's playhead, shared with the scene
    ├─ gsap.ts             Lazy GSAP loader + ScrollTrigger sync
    └─ utils.ts            cn, lerp, damp, mapRange, smoothstep
 ```
@@ -117,6 +123,107 @@ To re-time the animation, edit `FLIGHT_PATH`. To re-order the story, edit
 
 ---
 
+## The hero film
+
+`public/hero.mp4` is the hero: a ten-second aerial pass over an alpine
+lodge, generated in Google Flow, scrubbed by scroll.
+
+**Encode it with a short GOP and a high quality target.** The clip as
+delivered had a single keyframe in ten seconds, which made every seek decode
+from the top — the picture stuck, then jumped. The fix is a five-frame GOP,
+not an all-keyframe file: browsers seek to the preceding keyframe and decode
+forward, so both land on the exact frame, but all-intra costs enormous
+bitrate for nothing. Measured on this clip:
+
+| encode | size | SSIM | PSNR |
+| --- | --- | --- | --- |
+| GOP 5, CRF 19 | 12.3 MB | 0.988 | 42.0 dB |
+| all-intra, CRF 18 | 18 MB | 0.982 | — |
+| all-intra, CRF 28 | 6.5 MB | 0.943 | 32.0 dB |
+
+All-intra was bigger *and* worse. Seek latency at GOP 5 is 14–21 ms, under
+one frame. To replace the clip:
+
+```bash
+ffmpeg -i source.mp4 -an -c:v libx264 -preset veryslow -crf 19 -pix_fmt yuv420p \
+  -g 5 -keyint_min 5 -sc_threshold 0 -movflags +faststart public/hero.mp4
+```
+
+MP4/H.264 only — VP9 came out at 29 MB all-intra, and H.264 plays everywhere.
+
+**The ceiling is the source resolution.** This clip is 1280x720. A
+full-viewport hero is 1440 CSS pixels wide on a laptop and twice that on a
+retina panel, so it is being upscaled 2-3x and no encode setting recovers
+that. Re-export from Flow at the highest resolution it offers.
+
+Seeks are issued from a rAF loop, not from the scroll handler: assigning
+`currentTime` several times within one frame only queues work the decoder
+discards. Phones and low-power devices get the same file autoplaying on a
+loop instead of scrubbing, which sidesteps iOS seek behaviour entirely, and
+reduced motion gets the poster frame.
+
+The section dividers are stills lifted from the same clip
+(`plate-meadow.jpg`, `plate-lodge.jpg`), so the whole page reads as one
+piece of film.
+
+**The clip is AI-generated and is not a flight this studio performed.** It
+is indistinguishable from real drone footage of a real property, so the
+footer says so. Keep that line until the footage is real.
+
+## There was no photography
+
+Before the hero film existed, every visual was a live 3D scene rendered in
+React Three Fiber. That scene has been retired — with real footage on the
+page a stylised render a few sections below only looked worse by comparison
+— and three.js, drei and GSAP came out with it. The history is in the git
+log if you want it back.
+
+Sections marked `sky` are
+genuinely transparent — the layout is a stencil over a continuous flight.
+That has one hard consequence worth knowing before editing: **a transparent
+window inside an opaque cream band reveals the cream, not the scene.** Visuals
+have to live in their own `sky` band. Full-bleed, too, per the reference
+system, which bleeds imagery edge to edge in section dividers and avoids
+contained rounded cards at that scale — a frame would read as a container
+when the thing it appears to contain is visible right through the whole band.
+
+`<LiveCaption>` labels those bands. The "not footage" half is not decoration.
+
+## The hero is the shot (and why there is no portfolio)
+
+Dronly is a new business with no footage, so the site does not show a
+portfolio — inventing client work, or borrowing clips, would misrepresent
+what the studio has actually done. Instead the "The shot" section renders
+the flight it sells, in real time, and labels it in those words: *real-time
+3D previsualisation — not footage*.
+
+The hero owns no canvas of its own. It is a 340vh track with a
+`position: sticky` viewport inside it, and it simply takes over the camera
+the rest of the site is already flying. Rather than a headline over a still
+frame, the first thing on the page is the flight with the controls in the
+viewer's hands: scrolling the hero scrubs a pass over the property.
+
+Through the hero the drone model is faded out — the viewer *is* the
+aircraft — and it flies back into frame once the narrative resumes at
+stage 1.
+Scroll position within that track is the shot's timeline. A `<Scrubber>`
+sits over the frame with the shot list marked on it — approach, reveal,
+orbit, wide, windows — and seeking works by **moving the page**, not by
+holding a second copy of the playhead: the handle writes a scroll offset,
+and scroll drives the shot exactly as it always does. So there is one
+source of truth, dragging and scrolling can't disagree, and the scrubber
+stays correct with no syncing logic.
+
+Sticky is deliberate over ScrollTrigger's `pin`: pinning injects a spacer
+and rewrites document height, which the scroll provider measures section
+offsets from.
+
+Beat positions in `lib/shot.ts` and `SHOT_BEATS` in `lib/site.ts` are the
+same numbers, so a labelled tick always lands on the frame it names.
+
+Replace the whole thing with a real edit once one exists — the section is
+self-contained.
+
 ## Performance
 
 - **The 3D layer is never in the first-load bundle.** `SceneCanvas` is a
@@ -131,6 +238,11 @@ To re-time the animation, edit `FLIGHT_PATH`. To re-order the story, edit
   lighting comes from drei `Lightformer`s rather than a CDN-hosted HDR — the
   page never waits on a third-party asset to look right.
 - **GSAP is lazy too**, loaded by the first scroll-linked component that needs it.
+- **One WebGL context for the whole site.** There is a single scene and a
+  single camera; the scrubbable section takes that camera over rather than
+  mounting a second renderer to show the same valley twice. The forest is two
+  instanced meshes rather than a few hundred draw calls, and `lite` thins it
+  further.
 
 ## Responsiveness and accessibility
 
@@ -138,9 +250,12 @@ To re-time the animation, edit `FLIGHT_PATH`. To re-order the story, edit
 
 | Tier | When | What renders |
 | --- | --- | --- |
-| `full` | ≥1024px, fine pointer, ≥4 cores / ≥4 GB | The R3F scroll scene |
-| `lite` | phones, tablets, low-core devices | `LiteStage` — the same narrative in three composited transforms, no WebGL context |
-| `still` | `prefers-reduced-motion`, or no WebGL | A static composition |
+| `full` | ≥1024px, fine pointer, ≥4 cores / ≥4 GB | The scene at full density and pixel ratio |
+| `lite` | phones, tablets, low-core devices | The same scene, thinner forest, capped pixel ratio |
+| `still` | `prefers-reduced-motion`, or no WebGL | A static composition, and the shot list as a text storyboard |
+
+`lite` is not "no 3D". The scene is the site's only imagery — there is no
+photography to fall back to — so every device that can run WebGL gets it.
 
 Under reduced motion, Lenis is also switched off for native scrolling, GSAP
 parallax never initialises, and every reveal renders in its final state.
@@ -181,8 +296,14 @@ stay identical:
 ```
 
 `.mp4`/`.webm`/`.mov` render as a muted autoplaying loop; anything else renders
-as an image. For the gallery, add `media:` to the entries in `SHOWCASE`
-(`src/lib/site.ts`).
+as an image.
+
+**Claims to verify before launch.** `SITE.license` in `src/lib/site.ts` is
+marked as a placeholder: Part 107 is a real certification you must hold to fly
+commercially, and the insurance figure is a stand-in. Neither line should ship
+until both are true. `STATS` deliberately describes capability (resolution,
+crew size, delivery target) rather than history, because there is no history
+yet — if you replace those with counts, make them real ones.
 
 **Real fonts.** fkGroteskNeue and fkScreamer are licensed. The site loads the
 substitutes the reference system nominates — Inter and Antonio — through
@@ -193,6 +314,58 @@ at the files and keep the CSS variable names (`--font-fkgroteskneue`,
 **The booking form** currently logs the submission and confirms optimistically.
 Wire `onSubmit` in `src/components/sections/Contact.tsx` to a route handler at
 `app/api/booking/route.ts` or your form provider.
+
+---
+
+## Deployment
+
+The site ships to GitHub Pages from `.github/workflows/pages.yml` on every push
+to `main`, and nothing else: enabling Pages creates a `github-pages`
+environment whose deployment branch policy permits the default branch alone, so
+a run from a feature branch has its deploy job rejected before a single step
+executes. It is a **project** page, so it is served from a subpath rather than
+a domain root:
+
+**https://anushthedev.github.io/Dronly/**
+
+Pages serves static files and cannot run a Node server, so the workflow builds
+a static export and uploads `out/`:
+
+```bash
+DRONLY_STATIC_EXPORT=1 \
+NEXT_PUBLIC_BASE_PATH=/Dronly \
+NEXT_PUBLIC_SITE_URL=https://anushthedev.github.io/Dronly \
+npm run build
+```
+
+Everything about that mode is gated behind `DRONLY_STATIC_EXPORT` in
+`next.config.ts`. `npm run dev` and a plain `npm run build` are untouched: the
+site still runs at the root, with a server, exactly as before.
+
+### Why `asset()` exists
+
+`basePath` rewrites Next's own routes and everything under `_next/`, but it
+deliberately does not touch string literals — `src="/hero.mp4"` is just markup
+as far as the compiler is concerned. So files in `public/` go through
+`asset()` (`src/lib/asset.ts`), which prefixes `NEXT_PUBLIC_BASE_PATH`. The
+prefixing happens inside `ShotFilm` and `Plate` rather than at their call
+sites, so a new divider cannot forget it.
+
+**Adding a file to `public/` means referencing it through `asset()`.** A bare
+`/whatever.jpg` works in development and 404s on Pages.
+
+### One-time repository setting
+
+Pages must be told to take its content from Actions: **Settings → Pages →
+Build and deployment → Source → GitHub Actions**. Without it the workflow
+builds fine and the deploy step fails.
+
+### Moving to a real domain
+
+When `dronly.studio` (or whatever the business registers) is live, the subpath
+goes away: drop `NEXT_PUBLIC_BASE_PATH` from the workflow, point
+`NEXT_PUBLIC_SITE_URL` at the domain, and add a `public/CNAME`. `asset()`
+becomes a no-op on its own — no call sites change.
 
 ---
 

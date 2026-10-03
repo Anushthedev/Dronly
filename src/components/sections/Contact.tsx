@@ -5,6 +5,7 @@ import { useState, type FormEvent } from 'react';
 import { Arrow, Button } from '@/components/ui/Button';
 import { Tag } from '@/components/ui/Card';
 import { Reveal, RevealLines } from '@/components/ui/Reveal';
+import { Plate } from '@/components/ui/Plate';
 import { Band, Container, Section, SectionLabel } from '@/components/ui/Section';
 import { SERVICE_OPTIONS, SITE } from '@/lib/site';
 import { cn } from '@/lib/utils';
@@ -43,6 +44,7 @@ export function Contact() {
   return (
     <Section id="contact" label="Booking">
       <Band tone="sky" className="py-15 sm:py-30">
+        <Plate src="/plate-meadow.jpg" position="bottom" />
         <Container>
           <SectionLabel tone="cream">04 — Booking</SectionLabel>
 

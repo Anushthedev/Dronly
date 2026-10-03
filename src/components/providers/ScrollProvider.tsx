@@ -13,7 +13,6 @@ import {
 
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
-import { syncScrollTrigger } from '@/lib/gsap';
 import { SECTION_IDS } from '@/lib/site';
 import { clamp } from '@/lib/utils';
 
@@ -42,8 +41,15 @@ type ScrollApi = {
   state: React.RefObject<ScrollState>;
   /** Opt in to per-frame updates for DOM work that must stay off the render path. */
   subscribe: (fn: Subscriber) => () => void;
-  /** Smooth-scroll to a section id or element. */
-  scrollTo: (target: string | HTMLElement) => void;
+  /**
+   * Scroll to a section id, an element, or an absolute offset in px.
+   * `immediate` skips the easing — used while dragging the shot scrubber,
+   * where the page must track the handle frame for frame.
+   */
+  scrollTo: (
+    target: string | HTMLElement | number,
+    options?: { immediate?: boolean },
+  ) => void;
 };
 
 const ScrollContext = createContext<ScrollApi | null>(null);
@@ -105,19 +111,40 @@ export function ScrollProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const scrollTo = useCallback((target: string | HTMLElement) => {
-    const el =
-      typeof target === 'string'
-        ? document.getElementById(target.replace('#', ''))
-        : target;
-    if (!el) return;
+  const scrollTo = useCallback(
+    (target: string | HTMLElement | number, options?: { immediate?: boolean }) => {
+      const immediate = options?.immediate ?? false;
 
-    if (lenis.current) {
-      lenis.current.scrollTo(el, { offset: 0, duration: 1.4 });
-    } else {
-      el.scrollIntoView({ behavior: 'auto', block: 'start' });
-    }
-  }, []);
+      if (typeof target === 'number') {
+        if (lenis.current) {
+          lenis.current.scrollTo(target, {
+            immediate,
+            duration: immediate ? 0 : 0.9,
+          });
+        } else {
+          window.scrollTo({ top: target, behavior: 'auto' });
+        }
+        return;
+      }
+
+      const el =
+        typeof target === 'string'
+          ? document.getElementById(target.replace('#', ''))
+          : target;
+      if (!el) return;
+
+      if (lenis.current) {
+        lenis.current.scrollTo(el, {
+          offset: 0,
+          duration: immediate ? 0 : 1.4,
+          immediate,
+        });
+      } else {
+        el.scrollIntoView({ behavior: 'auto', block: 'start' });
+      }
+    },
+    [],
+  );
 
   useIsomorphicLayoutEffect(() => {
     const remeasure = () => {
@@ -135,7 +162,6 @@ export function ScrollProvider({ children }: { children: ReactNode }) {
       next.stage = toStage(y, boundaries.current);
       next.velocity = velocity;
       subscribers.current.forEach((fn) => fn(next));
-      syncScrollTrigger();
     };
 
     remeasure();
